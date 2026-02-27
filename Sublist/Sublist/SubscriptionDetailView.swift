@@ -9,13 +9,24 @@ struct SubscriptionDetailView: View {
 
     @AppStorage("currency") private var currency: String = "USD"
     @State private var isDeleted = false
+    @State private var showEmojiPicker = false
 
     var body: some View {
         Form {
             Section("Details") {
                 HStack {
-                    TextField("Emoji", text: $subscription.emoji)
-                        .frame(width: 44)
+                    Button {
+                        showEmojiPicker = true
+                    } label: {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color(.systemGray5))
+                                .frame(width: 44, height: 44)
+                            Text(subscription.emoji)
+                                .font(.title2)
+                        }
+                    }
+                    .buttonStyle(.plain)
                     TextField("Name", text: $subscription.name)
                 }
                 Picker("Category", selection: $subscription.category) {
@@ -55,6 +66,9 @@ struct SubscriptionDetailView: View {
         }
         .navigationTitle(subscription.name)
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $showEmojiPicker) {
+            EmojiPickerView(selectedEmoji: $subscription.emoji)
+        }
         .onDisappear {
             if !isDeleted {
                 NotificationManager.shared.scheduleAll(for: allSubscriptions)

@@ -12,14 +12,25 @@ struct AddSubscriptionView: View {
     @State private var nextRenewalDate = Date()
     @State private var category = Category.entertainment
     @State private var emoji = "📱"
+    @State private var showEmojiPicker = false
 
     var body: some View {
         NavigationStack {
             Form {
                 Section("Details") {
                     HStack {
-                        TextField("Emoji", text: $emoji)
-                            .frame(width: 44)
+                        Button {
+                            showEmojiPicker = true
+                        } label: {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(Color(.systemGray5))
+                                    .frame(width: 44, height: 44)
+                                Text(emoji)
+                                    .font(.title2)
+                            }
+                        }
+                        .buttonStyle(.plain)
                         TextField("Name (e.g. Netflix)", text: $name)
                     }
                     Picker("Category", selection: $category) {
@@ -45,6 +56,9 @@ struct AddSubscriptionView: View {
             }
             .navigationTitle("Add Subscription")
             .navigationBarTitleDisplayMode(.inline)
+            .sheet(isPresented: $showEmojiPicker) {
+                EmojiPickerView(selectedEmoji: $emoji)
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") { dismiss() }
