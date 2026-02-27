@@ -29,6 +29,10 @@ struct AddSubscriptionView: View {
                     }
                 }
                 Section("Billing") {
+                    Picker("Currency", selection: $currency) {
+                        Text("USD — US Dollar").tag("USD")
+                        Text("EUR — Euro").tag("EUR")
+                    }
                     TextField("Amount", value: $amount, format: .currency(code: currency))
                         .keyboardType(.decimalPad)
                     Picker("Billing Cycle", selection: $billingCycle) {
