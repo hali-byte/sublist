@@ -9,17 +9,18 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             List {
+                ForEach(subscriptions) { sub in
+                    SubscriptionRow(subscription: sub)
+                }
+                .onDelete(perform: deleteSubscriptions)
+            }
+            .overlay {
                 if subscriptions.isEmpty {
                     ContentUnavailableView(
                         "No Subscriptions Yet",
                         systemImage: "creditcard",
                         description: Text("Tap + to add your first subscription")
                     )
-                } else {
-                    ForEach(subscriptions) { sub in
-                        SubscriptionRow(subscription: sub)
-                    }
-                    .onDelete(perform: deleteSubscriptions)
                 }
             }
             .navigationTitle("Sublist")

@@ -39,11 +39,4 @@ enum Category: String, Codable, CaseIterable {
     case music         = "Music"
     case software      = "Software"
     case other         = "Other"
-}//
-//  Subscription.swift
-//  Sublist
-//
-//  Created by Hugo Hodinka on 2/27/26.
-//
-
-import Foundation
+}
