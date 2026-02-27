@@ -48,9 +48,16 @@ enum BillingCycle: String, Codable, CaseIterable {
 
 enum Category: String, Codable, CaseIterable {
     case entertainment = "Entertainment"
-    case productivity  = "Productivity"
-    case fitness       = "Fitness"
     case music         = "Music"
+    case gaming        = "Gaming"
+    case productivity  = "Productivity"
     case software      = "Software"
+    case news          = "News & Reading"
+    case fitness       = "Fitness"
+    case health        = "Health & Wellness"
+    case education     = "Education"
+    case finance       = "Finance"
+    case cloud         = "Cloud Storage"
+    case security      = "Security & VPN"
     case other         = "Other"
 }
