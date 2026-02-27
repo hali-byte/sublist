@@ -2,17 +2,42 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @Query private var subscriptions: [Subscription]
+    @Query(sort: \Subscription.nextRenewalDate) private var subscriptions: [Subscription]
     @Environment(\.modelContext) private var modelContext
     @State private var showingAddSheet = false
+
+    private var monthlyTotal: Double {
+        subscriptions.reduce(0) { $0 + $1.monthlyCost }
+    }
 
     var body: some View {
         NavigationStack {
             List {
-                ForEach(subscriptions) { sub in
-                    SubscriptionRow(subscription: sub)
+                if !subscriptions.isEmpty {
+                    Section("Spending Summary") {
+                        HStack {
+                            Label("Per Month", systemImage: "calendar")
+                            Spacer()
+                            Text(monthlyTotal, format: .currency(code: "USD"))
+                                .foregroundStyle(.secondary)
+                        }
+                        HStack {
+                            Label("Per Year", systemImage: "dollarsign.circle")
+                            Spacer()
+                            Text(monthlyTotal * 12, format: .currency(code: "USD"))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                 }
-                .onDelete(perform: deleteSubscriptions)
+
+                Section {
+                    ForEach(subscriptions) { sub in
+                        NavigationLink(destination: SubscriptionDetailView(subscription: sub)) {
+                            SubscriptionRow(subscription: sub)
+                        }
+                    }
+                    .onDelete(perform: deleteSubscriptions)
+                }
             }
             .overlay {
                 if subscriptions.isEmpty {
@@ -37,11 +62,15 @@ struct ContentView: View {
             .sheet(isPresented: $showingAddSheet) {
                 AddSubscriptionView()
             }
+            .onAppear {
+                NotificationManager.shared.scheduleAll(for: subscriptions)
+            }
         }
     }
 
     private func deleteSubscriptions(at offsets: IndexSet) {
         for index in offsets {
+            NotificationManager.shared.cancel(for: subscriptions[index])
             modelContext.delete(subscriptions[index])
         }
     }
@@ -49,6 +78,23 @@ struct ContentView: View {
 
 struct SubscriptionRow: View {
     let subscription: Subscription
+
+    private var renewalLabel: String {
+        switch subscription.daysUntilRenewal {
+        case ..<0: return "Overdue"
+        case 0:    return "Today"
+        case 1:    return "Tomorrow"
+        default:   return "In \(subscription.daysUntilRenewal)d"
+        }
+    }
+
+    private var renewalColor: Color {
+        switch subscription.daysUntilRenewal {
+        case ..<2:  return .red
+        case 2...7: return .orange
+        default:    return .secondary
+        }
+    }
 
     var body: some View {
         HStack {
@@ -71,9 +117,9 @@ struct SubscriptionRow: View {
             VStack(alignment: .trailing, spacing: 4) {
                 Text(subscription.amount, format: .currency(code: "USD"))
                     .font(.headline)
-                Text(subscription.billingCycle.rawValue)
+                Text(renewalLabel)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(renewalColor)
             }
         }
         .padding(.vertical, 4)

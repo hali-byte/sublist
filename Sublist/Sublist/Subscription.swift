@@ -3,12 +3,25 @@ import SwiftData
 
 @Model
 class Subscription {
+    var id: UUID
     var name: String
     var amount: Double
     var billingCycle: BillingCycle
     var nextRenewalDate: Date
     var category: Category
     var emoji: String
+
+    var monthlyCost: Double {
+        billingCycle == .yearly ? amount / 12.0 : amount
+    }
+
+    var daysUntilRenewal: Int {
+        Calendar.current.dateComponents(
+            [.day],
+            from: Calendar.current.startOfDay(for: .now),
+            to: Calendar.current.startOfDay(for: nextRenewalDate)
+        ).day ?? 0
+    }
 
     init(
         name: String,
@@ -18,6 +31,7 @@ class Subscription {
         category: Category,
         emoji: String
     ) {
+        self.id = UUID()
         self.name = name
         self.amount = amount
         self.billingCycle = billingCycle

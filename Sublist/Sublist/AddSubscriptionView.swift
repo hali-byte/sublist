@@ -63,6 +63,7 @@ struct AddSubscriptionView: View {
             emoji: emoji
         )
         modelContext.insert(sub)
+        NotificationManager.shared.schedule(for: sub)
         dismiss()
     }
 }
