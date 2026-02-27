@@ -7,6 +7,7 @@ struct SubscriptionDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Query private var allSubscriptions: [Subscription]
 
+    @AppStorage("currency") private var currency: String = "USD"
     @State private var isDeleted = false
 
     var body: some View {
@@ -25,7 +26,7 @@ struct SubscriptionDetailView: View {
             }
 
             Section("Billing") {
-                TextField("Amount", value: $subscription.amount, format: .currency(code: "USD"))
+                TextField("Amount", value: $subscription.amount, format: .currency(code: currency))
                     .keyboardType(.decimalPad)
                 Picker("Billing Cycle", selection: $subscription.billingCycle) {
                     ForEach(BillingCycle.allCases, id: \.self) { cycle in

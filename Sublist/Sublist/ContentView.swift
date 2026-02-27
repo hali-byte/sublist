@@ -4,7 +4,9 @@ import SwiftData
 struct ContentView: View {
     @Query(sort: \Subscription.nextRenewalDate) private var subscriptions: [Subscription]
     @Environment(\.modelContext) private var modelContext
+    @AppStorage("currency") private var currency: String = "USD"
     @State private var showingAddSheet = false
+    @State private var showingSettings = false
 
     private var monthlyTotal: Double {
         subscriptions.reduce(0) { $0 + $1.monthlyCost }
@@ -18,13 +20,13 @@ struct ContentView: View {
                         HStack {
                             Label("Per Month", systemImage: "calendar")
                             Spacer()
-                            Text(monthlyTotal, format: .currency(code: "USD"))
+                            Text(monthlyTotal, format: .currency(code: currency))
                                 .foregroundStyle(.secondary)
                         }
                         HStack {
                             Label("Per Year", systemImage: "dollarsign.circle")
                             Spacer()
-                            Text(monthlyTotal * 12, format: .currency(code: "USD"))
+                            Text(monthlyTotal * 12, format: .currency(code: currency))
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -50,19 +52,28 @@ struct ContentView: View {
             }
             .navigationTitle("Sublist")
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    EditButton()
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(action: { showingSettings = true }) {
+                        Image(systemName: "gear")
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: { showingAddSheet = true }) {
                         Image(systemName: "plus")
                     }
                 }
-                ToolbarItem(placement: .topBarLeading) {
-                    EditButton()
-                }
             }
             .sheet(isPresented: $showingAddSheet) {
                 AddSubscriptionView()
             }
-            .onAppear {
+            .sheet(isPresented: $showingSettings) {
+                SettingsView()
+            }
+            .task {
+                await NotificationManager.shared.refreshStatus()
                 NotificationManager.shared.scheduleAll(for: subscriptions)
             }
         }
@@ -78,6 +89,7 @@ struct ContentView: View {
 
 struct SubscriptionRow: View {
     let subscription: Subscription
+    @AppStorage("currency") private var currency: String = "USD"
 
     private var renewalLabel: String {
         switch subscription.daysUntilRenewal {
@@ -115,7 +127,7 @@ struct SubscriptionRow: View {
             Spacer()
 
             VStack(alignment: .trailing, spacing: 4) {
-                Text(subscription.amount, format: .currency(code: "USD"))
+                Text(subscription.amount, format: .currency(code: currency))
                     .font(.headline)
                 Text(renewalLabel)
                     .font(.caption)

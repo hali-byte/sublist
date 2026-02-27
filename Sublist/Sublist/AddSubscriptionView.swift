@@ -5,6 +5,7 @@ struct AddSubscriptionView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
+    @AppStorage("currency") private var currency: String = "USD"
     @State private var name = ""
     @State private var amount = 0.0
     @State private var billingCycle = BillingCycle.monthly
@@ -28,7 +29,7 @@ struct AddSubscriptionView: View {
                     }
                 }
                 Section("Billing") {
-                    TextField("Amount", value: $amount, format: .currency(code: "USD"))
+                    TextField("Amount", value: $amount, format: .currency(code: currency))
                         .keyboardType(.decimalPad)
                     Picker("Billing Cycle", selection: $billingCycle) {
                         ForEach(BillingCycle.allCases, id: \.self) { cycle in

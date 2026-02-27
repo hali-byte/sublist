@@ -3,7 +3,7 @@ import SwiftData
 
 @Model
 class Subscription {
-    var id: UUID
+    var id: UUID = UUID()
     var name: String
     var amount: Double
     var billingCycle: BillingCycle
