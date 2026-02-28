@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import WidgetKit
 
 struct ContentView: View {
     @Query(sort: \Subscription.nextRenewalDate) private var subscriptions: [Subscription]
@@ -139,6 +140,7 @@ struct ContentView: View {
             daysUntilRenewal: sub.daysUntilRenewal, currency: currency
         )) {
             defaults.set(data, forKey: "widgetNextSubscription")
+            WidgetCenter.shared.reloadAllTimelines()
         }
     }
 }

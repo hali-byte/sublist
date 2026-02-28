@@ -3,7 +3,7 @@ import SwiftUI
 
 // MARK: - Shared snapshot model (mirrors ContentView's writer)
 
-private struct SubscriptionSnapshot: Codable {
+struct SubscriptionSnapshot: Codable {
     let name: String
     let emoji: String
     let amount: Double
@@ -111,21 +111,21 @@ struct SublistWidgetView: View {
 
     @ViewBuilder
     private func renewalBadge(days: Int) -> some View {
-        let (label, color): (String, Color) = {
+        let (label, color, urgent): (String, Color, Bool) = {
             switch days {
-            case ..<0: return ("Overdue", .red)
-            case 0:    return ("Today", .red)
-            case 1:    return ("Tomorrow", .orange)
-            default:   return ("In \(days) days", .secondary)
+            case ..<0: return ("Overdue",          Color.red,      true)
+            case 0:    return ("Today",             Color.red,      true)
+            case 1:    return ("Tomorrow",          Color.orange,   true)
+            default:   return ("In \(days) days",   Color.secondary, false)
             }
         }()
 
         Text(label)
             .font(.caption2.weight(.medium))
-            .foregroundStyle(color == .secondary ? .secondary : color.opacity(0.9))
+            .foregroundStyle(urgent ? color.opacity(0.9) : Color.secondary)
             .padding(.horizontal, 7)
             .padding(.vertical, 3)
-            .background(color.opacity(color == .secondary ? 0 : 0.12), in: Capsule())
+            .background(urgent ? color.opacity(0.12) : Color.clear, in: Capsule())
     }
 }
 
