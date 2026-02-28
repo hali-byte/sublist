@@ -29,6 +29,9 @@ struct ContentView: View {
                             Text(monthlyTotal * 12, format: .currency(code: currency))
                                 .foregroundStyle(.secondary)
                         }
+                        NavigationLink(destination: SpendingChartView(subscriptions: subscriptions)) {
+                            Label("View Breakdown", systemImage: "chart.pie.fill")
+                        }
                     }
                 }
 
