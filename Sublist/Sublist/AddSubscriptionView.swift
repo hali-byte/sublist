@@ -39,7 +39,7 @@ struct AddSubscriptionView: View {
 
     @AppStorage("currency") private var currency: String = "USD"
     @State private var name = ""
-    @State private var amount = 0.0
+    @State private var amountText: String = ""
     @State private var billingCycle = BillingCycle.monthly
     @State private var nextRenewalDate = Date()
     @State private var category = Category.entertainment
@@ -101,8 +101,12 @@ struct AddSubscriptionView: View {
                         Text("USD — US Dollar").tag("USD")
                         Text("EUR — Euro").tag("EUR")
                     }
-                    TextField("Amount", value: $amount, format: .currency(code: currency))
-                        .keyboardType(.decimalPad)
+                    HStack(spacing: 4) {
+                        Text(currency == "EUR" ? "€" : "$")
+                            .foregroundStyle(.secondary)
+                        TextField("Amount", text: $amountText)
+                            .keyboardType(.decimalPad)
+                    }
                     Picker("Billing Cycle", selection: $billingCycle) {
                         ForEach(BillingCycle.allCases, id: \.self) { cycle in
                             Text(cycle.rawValue).tag(cycle)
@@ -142,6 +146,7 @@ struct AddSubscriptionView: View {
     }
 
     private func saveSubscription() {
+        let amount = Double(amountText.replacingOccurrences(of: ",", with: ".")) ?? 0.0
         let sub = Subscription(
             name: name,
             amount: amount,
