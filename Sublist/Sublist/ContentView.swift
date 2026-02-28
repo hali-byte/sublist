@@ -41,7 +41,7 @@ struct ContentView: View {
                         NavigationLink(destination: SubscriptionDetailView(subscription: sub)) {
                             SubscriptionRow(subscription: sub)
                         }
-                        .listRowSeparator(sub.daysUntilRenewal == 0 ? .hidden : .automatic, edges: .bottom)
+                        .listRowSeparator(sub.daysUntilRenewal <= 0 ? .hidden : .automatic, edges: .bottom)
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             Button(role: .destructive) {
                                 NotificationManager.shared.cancel(for: sub)
@@ -51,7 +51,7 @@ struct ContentView: View {
                             }
                         }
 
-                        if sub.daysUntilRenewal == 0 {
+                        if sub.daysUntilRenewal <= 0 {
                             Button {
                                 confirmedRenewalIDs.insert(sub.id)
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
