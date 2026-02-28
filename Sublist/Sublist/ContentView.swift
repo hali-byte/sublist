@@ -40,8 +40,38 @@ struct ContentView: View {
                         NavigationLink(destination: SubscriptionDetailView(subscription: sub)) {
                             SubscriptionRow(subscription: sub)
                         }
+                        .listRowSeparator(sub.daysUntilRenewal == 0 ? .hidden : .automatic, edges: .bottom)
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .destructive) {
+                                NotificationManager.shared.cancel(for: sub)
+                                modelContext.delete(sub)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
+
+                        if sub.daysUntilRenewal == 0 {
+                            Button {
+                                markAsRenewed(sub)
+                            } label: {
+                                HStack {
+                                    Spacer()
+                                    Label("Mark as Renewed", systemImage: "checkmark.circle.fill")
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundStyle(.white)
+                                        .padding(.horizontal, 20)
+                                        .padding(.vertical, 9)
+                                        .background(.green, in: Capsule())
+                                    Spacer()
+                                }
+                                .padding(.top, 2)
+                                .padding(.bottom, 8)
+                            }
+                            .listRowBackground(Color(.secondarySystemGroupedBackground))
+                            .listRowSeparator(.hidden, edges: .top)
+                            .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+                        }
                     }
-                    .onDelete(perform: deleteSubscriptions)
                 }
             }
             .overlay {
@@ -55,9 +85,6 @@ struct ContentView: View {
             }
             .navigationTitle("Sublist")
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    EditButton()
-                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: { showingSettings = true }) {
                         Image(systemName: "gear")
@@ -82,10 +109,11 @@ struct ContentView: View {
         }
     }
 
-    private func deleteSubscriptions(at offsets: IndexSet) {
-        for index in offsets {
-            NotificationManager.shared.cancel(for: subscriptions[index])
-            modelContext.delete(subscriptions[index])
+    private func markAsRenewed(_ subscription: Subscription) {
+        let component: Calendar.Component = subscription.billingCycle == .monthly ? .month : .year
+        if let newDate = Calendar.current.date(byAdding: component, value: 1, to: subscription.nextRenewalDate) {
+            subscription.nextRenewalDate = newDate
+            NotificationManager.shared.schedule(for: subscription)
         }
     }
 }
