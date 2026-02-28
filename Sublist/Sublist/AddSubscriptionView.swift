@@ -6,28 +6,29 @@ import SwiftData
 struct PopularSubscription: Identifiable, Equatable {
     let id = UUID()
     let name: String
-    let emoji: String
+    let emoji: String   // fallback when logo fails to load
     let category: Category
     let billingCycle: BillingCycle
+    let domain: String  // used to fetch logo via Clearbit
 }
 
 private let popularSubscriptions: [PopularSubscription] = [
-    PopularSubscription(name: "Netflix",       emoji: "🎬", category: .entertainment, billingCycle: .monthly),
-    PopularSubscription(name: "Spotify",       emoji: "🎵", category: .music,         billingCycle: .monthly),
-    PopularSubscription(name: "Apple Music",   emoji: "🎶", category: .music,         billingCycle: .monthly),
-    PopularSubscription(name: "YouTube",       emoji: "▶️", category: .entertainment, billingCycle: .monthly),
-    PopularSubscription(name: "Disney+",       emoji: "✨", category: .entertainment, billingCycle: .monthly),
-    PopularSubscription(name: "Amazon Prime",  emoji: "📦", category: .entertainment, billingCycle: .yearly),
-    PopularSubscription(name: "Apple TV+",     emoji: "🍿", category: .entertainment, billingCycle: .monthly),
-    PopularSubscription(name: "Hulu",          emoji: "📺", category: .entertainment, billingCycle: .monthly),
-    PopularSubscription(name: "iCloud+",       emoji: "☁️", category: .cloud,         billingCycle: .monthly),
-    PopularSubscription(name: "Google One",    emoji: "🔵", category: .cloud,         billingCycle: .monthly),
-    PopularSubscription(name: "ChatGPT Plus",  emoji: "🤖", category: .productivity,  billingCycle: .monthly),
-    PopularSubscription(name: "Notion",        emoji: "📝", category: .productivity,  billingCycle: .monthly),
-    PopularSubscription(name: "1Password",     emoji: "🔐", category: .security,      billingCycle: .yearly),
-    PopularSubscription(name: "NordVPN",       emoji: "🛡️", category: .security,      billingCycle: .yearly),
-    PopularSubscription(name: "Duolingo",      emoji: "🦉", category: .education,     billingCycle: .monthly),
-    PopularSubscription(name: "NYT",           emoji: "📰", category: .news,          billingCycle: .monthly),
+    PopularSubscription(name: "Netflix",       emoji: "🎬", category: .entertainment, billingCycle: .monthly,  domain: "netflix.com"),
+    PopularSubscription(name: "Spotify",       emoji: "🎵", category: .music,         billingCycle: .monthly,  domain: "spotify.com"),
+    PopularSubscription(name: "Apple Music",   emoji: "🎶", category: .music,         billingCycle: .monthly,  domain: "music.apple.com"),
+    PopularSubscription(name: "YouTube",       emoji: "▶️", category: .entertainment, billingCycle: .monthly,  domain: "youtube.com"),
+    PopularSubscription(name: "Disney+",       emoji: "✨", category: .entertainment, billingCycle: .monthly,  domain: "disneyplus.com"),
+    PopularSubscription(name: "Amazon Prime",  emoji: "📦", category: .entertainment, billingCycle: .yearly,   domain: "amazon.com"),
+    PopularSubscription(name: "Apple TV+",     emoji: "🍿", category: .entertainment, billingCycle: .monthly,  domain: "tv.apple.com"),
+    PopularSubscription(name: "Hulu",          emoji: "📺", category: .entertainment, billingCycle: .monthly,  domain: "hulu.com"),
+    PopularSubscription(name: "iCloud+",       emoji: "☁️", category: .cloud,         billingCycle: .monthly,  domain: "icloud.com"),
+    PopularSubscription(name: "Google One",    emoji: "🔵", category: .cloud,         billingCycle: .monthly,  domain: "one.google.com"),
+    PopularSubscription(name: "ChatGPT Plus",  emoji: "🤖", category: .productivity,  billingCycle: .monthly,  domain: "openai.com"),
+    PopularSubscription(name: "Notion",        emoji: "📝", category: .productivity,  billingCycle: .monthly,  domain: "notion.so"),
+    PopularSubscription(name: "1Password",     emoji: "🔐", category: .security,      billingCycle: .yearly,   domain: "1password.com"),
+    PopularSubscription(name: "NordVPN",       emoji: "🛡️", category: .security,      billingCycle: .yearly,   domain: "nordvpn.com"),
+    PopularSubscription(name: "Duolingo",      emoji: "🦉", category: .education,     billingCycle: .monthly,  domain: "duolingo.com"),
+    PopularSubscription(name: "NYT",           emoji: "📰", category: .news,          billingCycle: .monthly,  domain: "nytimes.com"),
 ]
 
 // MARK: - View
@@ -163,8 +164,19 @@ private struct PopularCard: View {
 
     var body: some View {
         VStack(spacing: 6) {
-            Text(preset.emoji)
-                .font(.system(size: 28))
+            AsyncImage(url: URL(string: "https://logo.clearbit.com/\(preset.domain)")) { phase in
+                if case .success(let image) = phase {
+                    image
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 38, height: 38)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                } else {
+                    Text(preset.emoji)
+                        .font(.system(size: 28))
+                        .frame(width: 38, height: 38)
+                }
+            }
             Text(preset.name)
                 .font(.caption2)
                 .fontWeight(.medium)

@@ -86,17 +86,23 @@ struct SpendingChartView: View {
             .animation(.easeInOut(duration: 0.2), value: selectedID)
 
             centerLabel
+            centerHoleTapTarget
         }
         .padding(.vertical, 8)
         .frame(maxWidth: .infinity)
         .background(Color(.secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 16))
-        // Tap the centre hole to clear selection
-        .contentShape(Circle().size(CGSize(width: 120, height: 120))
-            .offset(x: UIScreen.main.bounds.width / 2 - 16, y: 138))
-        .onTapGesture {
-            withAnimation(.easeInOut(duration: 0.2)) { selectedID = nil }
-        }
+    }
+
+    /// Invisible tap target sized to the inner hole (innerRadius ratio 0.62 × ~130pt = ~80pt radius).
+    private var centerHoleTapTarget: some View {
+        Circle()
+            .fill(Color.clear)
+            .frame(width: 148, height: 148)
+            .contentShape(Circle())
+            .onTapGesture {
+                withAnimation(.easeInOut(duration: 0.2)) { selectedID = nil }
+            }
     }
 
     private var centerLabel: some View {
