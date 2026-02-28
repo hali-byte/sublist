@@ -54,19 +54,14 @@ struct ContentView: View {
                             Button {
                                 markAsRenewed(sub)
                             } label: {
-                                HStack {
-                                    Spacer()
-                                    Label("Mark as Renewed", systemImage: "checkmark.circle.fill")
-                                        .font(.subheadline.weight(.semibold))
-                                        .foregroundStyle(.white)
-                                        .padding(.horizontal, 20)
-                                        .padding(.vertical, 9)
-                                        .background(.green, in: Capsule())
-                                    Spacer()
-                                }
-                                .padding(.top, 2)
-                                .padding(.bottom, 8)
+                                Label("Mark as Renewed", systemImage: "checkmark.circle.fill")
+                                    .font(.subheadline.weight(.semibold))
+                                    .padding(.horizontal, 20)
+                                    .padding(.vertical, 9)
                             }
+                            .buttonStyle(RenewedButtonStyle())
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 6)
                             .listRowBackground(Color(.secondarySystemGroupedBackground))
                             .listRowSeparator(.hidden, edges: .top)
                             .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
@@ -166,5 +161,18 @@ struct SubscriptionRow: View {
             }
         }
         .padding(.vertical, 4)
+    }
+}
+
+private struct RenewedButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundStyle(configuration.isPressed ? .white : .green)
+            .background(
+                Capsule()
+                    .fill(configuration.isPressed ? Color.green : Color.clear)
+                    .overlay(Capsule().strokeBorder(Color.green, lineWidth: 1.5))
+            )
+            .animation(.easeInOut(duration: 0.12), value: configuration.isPressed)
     }
 }
