@@ -65,35 +65,40 @@ struct SublistWidgetView: View {
     }
 
     private func contentView(_ s: SubscriptionSnapshot) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .trailing, spacing: 2) {
+
+            // Top right — context label
             Text("UP NEXT")
-                .font(.system(size: 9, weight: .semibold))
+                .font(.caption2.weight(.bold))
                 .foregroundStyle(.secondary)
-                .kerning(1)
+                .kerning(0.6)
+
+            // Right below — renewal urgency
+            renewalBadge(days: s.daysUntilRenewal)
 
             Spacer()
 
-            Text(s.emoji)
-                .font(.system(size: 40))
+            // Bottom left — service identity + amount
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    Text(s.emoji)
+                        .font(.system(size: 18))
+                    Text(s.name)
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
 
-            Spacer(minLength: 8)
-
-            Text(s.name)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.primary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-
-            Text(s.amount, format: .currency(code: s.currency))
-                .font(.footnote.monospacedDigit())
-                .foregroundStyle(.secondary)
-
-            Spacer(minLength: 10)
-
-            renewalBadge(days: s.daysUntilRenewal)
+                Text(s.amount, format: .currency(code: s.currency))
+                    .font(.title2.weight(.bold).monospacedDigit())
+                    .foregroundStyle(.primary)
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(14)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var emptyView: some View {
@@ -121,11 +126,8 @@ struct SublistWidgetView: View {
         }()
 
         Text(label)
-            .font(.caption2.weight(.medium))
-            .foregroundStyle(urgent ? color.opacity(0.9) : Color.secondary)
-            .padding(.horizontal, 7)
-            .padding(.vertical, 3)
-            .background(urgent ? color.opacity(0.12) : Color.clear, in: Capsule())
+            .font(.footnote.weight(.semibold))
+            .foregroundStyle(urgent ? color : Color.secondary)
     }
 }
 
