@@ -7,6 +7,7 @@ struct ContentView: View {
     @AppStorage("currency") private var currency: String = "USD"
     @State private var showingAddSheet = false
     @State private var showingSettings = false
+    @State private var confirmedRenewalIDs: Set<UUID> = []
 
     private var monthlyTotal: Double {
         subscriptions.reduce(0) { $0 + $1.monthlyCost }
@@ -52,19 +53,25 @@ struct ContentView: View {
 
                         if sub.daysUntilRenewal == 0 {
                             Button {
-                                markAsRenewed(sub)
+                                confirmedRenewalIDs.insert(sub.id)
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                                    withAnimation(.easeOut(duration: 0.4)) {
+                                        markAsRenewed(sub)
+                                    }
+                                }
                             } label: {
                                 Label("Mark as Renewed", systemImage: "checkmark.circle.fill")
                                     .font(.subheadline.weight(.semibold))
                                     .padding(.horizontal, 20)
                                     .padding(.vertical, 9)
                             }
-                            .buttonStyle(RenewedButtonStyle())
+                            .buttonStyle(RenewedButtonStyle(isConfirmed: confirmedRenewalIDs.contains(sub.id)))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 6)
                             .listRowBackground(Color(.secondarySystemGroupedBackground))
                             .listRowSeparator(.hidden, edges: .top)
                             .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+                            .transition(.opacity)
                         }
                     }
                 }
@@ -165,14 +172,17 @@ struct SubscriptionRow: View {
 }
 
 private struct RenewedButtonStyle: ButtonStyle {
+    let isConfirmed: Bool
+
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .foregroundStyle(configuration.isPressed ? .white : .green)
+        let filled = configuration.isPressed || isConfirmed
+        return configuration.label
+            .foregroundStyle(filled ? .white : .green)
             .background(
                 Capsule()
-                    .fill(configuration.isPressed ? Color.green : Color.clear)
+                    .fill(filled ? Color.green : Color.clear)
                     .overlay(Capsule().strokeBorder(Color.green, lineWidth: 1.5))
             )
-            .animation(.easeInOut(duration: 0.12), value: configuration.isPressed)
+            .animation(.easeInOut(duration: 0.15), value: filled)
     }
 }
