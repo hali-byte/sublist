@@ -107,7 +107,9 @@ struct ContentView: View {
             .task {
                 await NotificationManager.shared.refreshStatus()
                 NotificationManager.shared.scheduleAll(for: subscriptions)
+                updateWidgetSnapshot()
             }
+            .onChange(of: subscriptions) { updateWidgetSnapshot() }
         }
     }
 
@@ -116,6 +118,27 @@ struct ContentView: View {
         if let newDate = Calendar.current.date(byAdding: component, value: 1, to: subscription.nextRenewalDate) {
             subscription.nextRenewalDate = newDate
             NotificationManager.shared.schedule(for: subscription)
+            updateWidgetSnapshot()
+        }
+    }
+
+    private func updateWidgetSnapshot() {
+        guard let defaults = UserDefaults(suiteName: "group.com.hugohodinka.Sublist") else { return }
+        struct Snapshot: Codable {
+            let name: String; let emoji: String
+            let amount: Double; let billingCycle: String
+            let daysUntilRenewal: Int; let currency: String
+        }
+        guard let sub = subscriptions.first else {
+            defaults.removeObject(forKey: "widgetNextSubscription")
+            return
+        }
+        if let data = try? JSONEncoder().encode(Snapshot(
+            name: sub.name, emoji: sub.emoji,
+            amount: sub.amount, billingCycle: sub.billingCycle.rawValue,
+            daysUntilRenewal: sub.daysUntilRenewal, currency: currency
+        )) {
+            defaults.set(data, forKey: "widgetNextSubscription")
         }
     }
 }
