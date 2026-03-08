@@ -8,8 +8,16 @@ struct SubscriptionSnapshot: Codable {
     let emoji: String
     let amount: Double
     let billingCycle: String
-    let daysUntilRenewal: Int
+    let nextRenewalDate: Date
     let currency: String
+
+    var daysUntilRenewal: Int {
+        Calendar.current.dateComponents(
+            [.day],
+            from: Calendar.current.startOfDay(for: .now),
+            to: Calendar.current.startOfDay(for: nextRenewalDate)
+        ).day ?? 0
+    }
 }
 
 // MARK: - Timeline entry
@@ -27,7 +35,9 @@ struct SublistProvider: TimelineProvider {
     func placeholder(in context: Context) -> SublistEntry {
         SublistEntry(date: .now, snapshot: SubscriptionSnapshot(
             name: "Netflix", emoji: "🎬", amount: 15.99,
-            billingCycle: "Monthly", daysUntilRenewal: 3, currency: "USD"
+            billingCycle: "Monthly",
+            nextRenewalDate: Calendar.current.date(byAdding: .day, value: 3, to: .now) ?? .now,
+            currency: "USD"
         ))
     }
 

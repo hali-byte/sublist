@@ -1,11 +1,12 @@
 import SwiftUI
 import SwiftData
+import WidgetKit
 
 struct SubscriptionDetailView: View {
     @Bindable var subscription: Subscription
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
-    @Query private var allSubscriptions: [Subscription]
+    @Query(sort: \Subscription.nextRenewalDate) private var allSubscriptions: [Subscription]
 
     @AppStorage("currency") private var currency: String = "USD"
     @State private var isDeleted = false
@@ -80,6 +81,26 @@ struct SubscriptionDetailView: View {
         let component: Calendar.Component = subscription.billingCycle == .monthly ? .month : .year
         if let newDate = Calendar.current.date(byAdding: component, value: 1, to: subscription.nextRenewalDate) {
             subscription.nextRenewalDate = newDate
+            NotificationManager.shared.schedule(for: subscription)
+            updateWidgetSnapshot()
+        }
+    }
+
+    private func updateWidgetSnapshot() {
+        guard let defaults = UserDefaults(suiteName: "group.com.hugohodinka.Sublist"),
+              let sub = allSubscriptions.first else { return }
+        struct Snapshot: Codable {
+            let name: String; let emoji: String
+            let amount: Double; let billingCycle: String
+            let nextRenewalDate: Date; let currency: String
+        }
+        if let data = try? JSONEncoder().encode(Snapshot(
+            name: sub.name, emoji: sub.emoji,
+            amount: sub.amount, billingCycle: sub.billingCycle.rawValue,
+            nextRenewalDate: sub.nextRenewalDate, currency: currency
+        )) {
+            defaults.set(data, forKey: "widgetNextSubscription")
+            WidgetCenter.shared.reloadAllTimelines()
         }
     }
 }

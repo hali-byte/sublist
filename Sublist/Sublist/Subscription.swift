@@ -31,7 +31,6 @@ class Subscription {
         category: Category,
         emoji: String
     ) {
-        self.id = UUID()
         self.name = name
         self.amount = amount
         self.billingCycle = billingCycle

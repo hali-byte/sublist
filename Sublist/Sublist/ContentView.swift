@@ -110,7 +110,7 @@ struct ContentView: View {
                 NotificationManager.shared.scheduleAll(for: subscriptions)
                 updateWidgetSnapshot()
             }
-            .onChange(of: subscriptions) { updateWidgetSnapshot() }
+            .onChange(of: subscriptions) { _, _ in updateWidgetSnapshot() }
         }
     }
 
@@ -118,6 +118,7 @@ struct ContentView: View {
         let component: Calendar.Component = subscription.billingCycle == .monthly ? .month : .year
         if let newDate = Calendar.current.date(byAdding: component, value: 1, to: subscription.nextRenewalDate) {
             subscription.nextRenewalDate = newDate
+            confirmedRenewalIDs.remove(subscription.id)
             NotificationManager.shared.schedule(for: subscription)
             updateWidgetSnapshot()
         }
@@ -128,16 +129,17 @@ struct ContentView: View {
         struct Snapshot: Codable {
             let name: String; let emoji: String
             let amount: Double; let billingCycle: String
-            let daysUntilRenewal: Int; let currency: String
+            let nextRenewalDate: Date; let currency: String
         }
         guard let sub = subscriptions.first else {
             defaults.removeObject(forKey: "widgetNextSubscription")
+            WidgetCenter.shared.reloadAllTimelines()
             return
         }
         if let data = try? JSONEncoder().encode(Snapshot(
             name: sub.name, emoji: sub.emoji,
             amount: sub.amount, billingCycle: sub.billingCycle.rawValue,
-            daysUntilRenewal: sub.daysUntilRenewal, currency: currency
+            nextRenewalDate: sub.nextRenewalDate, currency: currency
         )) {
             defaults.set(data, forKey: "widgetNextSubscription")
             WidgetCenter.shared.reloadAllTimelines()
