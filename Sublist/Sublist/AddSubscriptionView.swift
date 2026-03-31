@@ -81,7 +81,7 @@ struct AddSubscriptionView: View {
                                 RoundedRectangle(cornerRadius: 8)
                                     .fill(Color(.systemGray5))
                                     .frame(width: 44, height: 44)
-                                EmojiView(emoji: emoji, size: 22)
+                                SubscriptionIconView(name: name, emoji: emoji, size: 22)
                                 .frame(width: 44, height: 44)
                             }
                         }
@@ -106,9 +106,15 @@ struct AddSubscriptionView: View {
                     Picker("Currency", selection: $currency) {
                         Text("USD — US Dollar").tag("USD")
                         Text("EUR — Euro").tag("EUR")
+                        Text("GBP — British Pound").tag("GBP")
+                        Text("AUD — Australian Dollar").tag("AUD")
+                        Text("CNY — Chinese Yuan").tag("CNY")
+                        Text("SGD — Singapore Dollar").tag("SGD")
+                        Text("SEK — Swedish Krona").tag("SEK")
+                        Text("PLN — Polish Złoty").tag("PLN")
                     }
                     HStack(spacing: 4) {
-                        Text(currency == "EUR" ? "€" : "$")
+                        Text(currencySymbol(for: currency))
                             .foregroundStyle(.secondary)
                         TextField("Amount", text: $amountText)
                             .keyboardType(.decimalPad)
@@ -165,5 +171,14 @@ struct AddSubscriptionView: View {
         NotificationManager.shared.schedule(for: sub)
         dismiss()
     }
+}
+
+private func currencySymbol(for code: String) -> String {
+    let symbols: [String: String] = [
+        "USD": "$", "EUR": "€", "GBP": "£",
+        "AUD": "A$", "CNY": "¥", "SGD": "S$",
+        "SEK": "kr", "PLN": "zł",
+    ]
+    return symbols[code] ?? code
 }
 

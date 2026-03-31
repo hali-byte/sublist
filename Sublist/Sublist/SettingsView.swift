@@ -22,8 +22,14 @@ struct SettingsView: View {
 
                 Section("Preferences") {
                     Picker("Currency", selection: $currency) {
-                        Text("USD ($)").tag("USD")
-                        Text("EUR (€)").tag("EUR")
+                        Text("USD — US Dollar").tag("USD")
+                        Text("EUR — Euro").tag("EUR")
+                        Text("GBP — British Pound").tag("GBP")
+                        Text("AUD — Australian Dollar").tag("AUD")
+                        Text("CNY — Chinese Yuan").tag("CNY")
+                        Text("SGD — Singapore Dollar").tag("SGD")
+                        Text("SEK — Swedish Krona").tag("SEK")
+                        Text("PLN — Polish Złoty").tag("PLN")
                     }
                 }
 

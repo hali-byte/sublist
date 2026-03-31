@@ -6,6 +6,7 @@ import SwiftUI
 struct SubscriptionSnapshot: Codable {
     let name: String
     let emoji: String
+    let iconName: String?
     let amount: Double
     let billingCycle: String
     let nextRenewalDate: Date
@@ -34,7 +35,7 @@ struct SublistProvider: TimelineProvider {
 
     func placeholder(in context: Context) -> SublistEntry {
         SublistEntry(date: .now, snapshot: SubscriptionSnapshot(
-            name: "Netflix", emoji: "🎬", amount: 15.99,
+            name: "Netflix", emoji: "🎬", iconName: "icon_netflix", amount: 15.99,
             billingCycle: "Monthly",
             nextRenewalDate: Calendar.current.date(byAdding: .day, value: 3, to: .now) ?? .now,
             currency: "USD"
@@ -91,8 +92,15 @@ struct SublistWidgetView: View {
             // Bottom left — service identity + amount
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 6) {
-                    Text(s.emoji)
-                        .font(.system(size: 18))
+                    if let iconName = s.iconName {
+                        Image(iconName)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 20, height: 20)
+                    } else {
+                        Text(s.emoji)
+                            .font(.system(size: 18))
+                    }
                     Text(s.name)
                         .font(.footnote.weight(.semibold))
                         .foregroundStyle(.secondary)

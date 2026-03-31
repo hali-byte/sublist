@@ -6,7 +6,7 @@ struct PopularCard: View {
 
     var body: some View {
         VStack(spacing: 6) {
-            EmojiView(emoji: preset.emoji, size: 28)
+            SubscriptionIconView(name: preset.name, emoji: preset.emoji, size: 28)
                 .frame(width: 38, height: 38)
             Text(preset.name)
                 .font(.caption2)

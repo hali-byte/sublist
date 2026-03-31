@@ -23,7 +23,7 @@ struct SubscriptionRow: View {
 
     var body: some View {
         HStack {
-            EmojiView(emoji: subscription.emoji, size: 28)
+            SubscriptionIconView(name: subscription.name, emoji: subscription.emoji, size: 28)
                 .frame(width: 44, height: 44)
                 .background(Color(.systemGray6))
                 .clipShape(RoundedRectangle(cornerRadius: 10))

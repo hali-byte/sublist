@@ -10,6 +10,7 @@ func updateWidgetSnapshot(from subscriptions: [Subscription], currency: String) 
     if let data = try? JSONEncoder().encode(SubscriptionSnapshot(
         name: sub.name,
         emoji: sub.emoji,
+        iconName: bundledIconName(for: sub.name),
         amount: sub.amount,
         billingCycle: sub.billingCycle.rawValue,
         nextRenewalDate: sub.nextRenewalDate,
