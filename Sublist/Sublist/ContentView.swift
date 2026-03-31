@@ -1,11 +1,10 @@
 import SwiftUI
 import SwiftData
-import WidgetKit
 
 struct ContentView: View {
     @Query(sort: \Subscription.nextRenewalDate) private var subscriptions: [Subscription]
     @Environment(\.modelContext) private var modelContext
-    @AppStorage("currency") private var currency: String = "USD"
+    @AppStorage(AppConstants.currencyKey) private var currency: String = "USD"
     @State private var showingAddSheet = false
     @State private var showingSettings = false
     @State private var confirmedRenewalIDs: Set<UUID> = []
@@ -108,93 +107,19 @@ struct ContentView: View {
             .task {
                 await NotificationManager.shared.refreshStatus()
                 NotificationManager.shared.scheduleAll(for: subscriptions)
-                updateWidgetSnapshot()
+                updateWidgetSnapshot(from: subscriptions, currency: currency)
             }
-            .onChange(of: subscriptions) { _, _ in updateWidgetSnapshot() }
+            .onChange(of: subscriptions) { _, _ in
+                updateWidgetSnapshot(from: subscriptions, currency: currency)
+            }
         }
     }
 
     private func markAsRenewed(_ subscription: Subscription) {
-        let component: Calendar.Component = subscription.billingCycle == .monthly ? .month : .year
-        if let newDate = Calendar.current.date(byAdding: component, value: 1, to: subscription.nextRenewalDate) {
-            subscription.nextRenewalDate = newDate
-            confirmedRenewalIDs.remove(subscription.id)
-            NotificationManager.shared.schedule(for: subscription)
-            updateWidgetSnapshot()
-        }
-    }
-
-    private func updateWidgetSnapshot() {
-        guard let defaults = UserDefaults(suiteName: "group.com.hugohodinka.Sublist") else { return }
-        struct Snapshot: Codable {
-            let name: String; let emoji: String
-            let amount: Double; let billingCycle: String
-            let nextRenewalDate: Date; let currency: String
-        }
-        guard let sub = subscriptions.first else {
-            defaults.removeObject(forKey: "widgetNextSubscription")
-            WidgetCenter.shared.reloadAllTimelines()
-            return
-        }
-        if let data = try? JSONEncoder().encode(Snapshot(
-            name: sub.name, emoji: sub.emoji,
-            amount: sub.amount, billingCycle: sub.billingCycle.rawValue,
-            nextRenewalDate: sub.nextRenewalDate, currency: currency
-        )) {
-            defaults.set(data, forKey: "widgetNextSubscription")
-            WidgetCenter.shared.reloadAllTimelines()
-        }
-    }
-}
-
-struct SubscriptionRow: View {
-    let subscription: Subscription
-    @AppStorage("currency") private var currency: String = "USD"
-
-    private var renewalLabel: String {
-        switch subscription.daysUntilRenewal {
-        case ..<0: return "Overdue"
-        case 0:    return "Today"
-        case 1:    return "Tomorrow"
-        default:   return "In \(subscription.daysUntilRenewal)d"
-        }
-    }
-
-    private var renewalColor: Color {
-        switch subscription.daysUntilRenewal {
-        case ..<2:  return .red
-        case 2...7: return .orange
-        default:    return .secondary
-        }
-    }
-
-    var body: some View {
-        HStack {
-            Text(subscription.emoji)
-                .font(.title)
-                .frame(width: 44, height: 44)
-                .background(Color(.systemGray6))
-                .clipShape(RoundedRectangle(cornerRadius: 10))
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(subscription.name)
-                    .font(.headline)
-                Text(subscription.category.rawValue)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer()
-
-            VStack(alignment: .trailing, spacing: 4) {
-                Text(subscription.amount, format: .currency(code: currency))
-                    .font(.headline)
-                Text(renewalLabel)
-                    .font(.caption)
-                    .foregroundStyle(renewalColor)
-            }
-        }
-        .padding(.vertical, 4)
+        subscription.markAsRenewed()
+        confirmedRenewalIDs.remove(subscription.id)
+        NotificationManager.shared.schedule(for: subscription)
+        updateWidgetSnapshot(from: subscriptions, currency: currency)
     }
 }
 

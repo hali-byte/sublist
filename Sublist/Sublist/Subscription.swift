@@ -23,6 +23,13 @@ class Subscription {
         ).day ?? 0
     }
 
+    func markAsRenewed() {
+        let component: Calendar.Component = billingCycle == .monthly ? .month : .year
+        if let newDate = Calendar.current.date(byAdding: component, value: 1, to: nextRenewalDate) {
+            nextRenewalDate = newDate
+        }
+    }
+
     init(
         name: String,
         amount: Double,

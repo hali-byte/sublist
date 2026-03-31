@@ -5,7 +5,7 @@ import UserNotifications
 struct SettingsView: View {
     private var notificationManager = NotificationManager.shared
     @Query private var allSubscriptions: [Subscription]
-    @AppStorage("currency") private var currency: String = "USD"
+    @AppStorage(AppConstants.currencyKey) private var currency: String = "USD"
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
 

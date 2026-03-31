@@ -44,7 +44,7 @@ final class NotificationManager {
 
         let content = UNMutableNotificationContent()
         content.title = "Subscription Renewing Tomorrow"
-        let currency = UserDefaults.standard.string(forKey: "currency") ?? "USD"
+        let currency = UserDefaults.standard.string(forKey: AppConstants.currencyKey) ?? "USD"
         content.body = "\(subscription.emoji) \(subscription.name) renews tomorrow for \(subscription.amount.formatted(.currency(code: currency)))"
         content.sound = .default
 

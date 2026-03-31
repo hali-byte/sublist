@@ -1,6 +1,5 @@
 import SwiftUI
 import SwiftData
-import WidgetKit
 
 struct SubscriptionDetailView: View {
     @Bindable var subscription: Subscription
@@ -8,7 +7,7 @@ struct SubscriptionDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Query(sort: \Subscription.nextRenewalDate) private var allSubscriptions: [Subscription]
 
-    @AppStorage("currency") private var currency: String = "USD"
+    @AppStorage(AppConstants.currencyKey) private var currency: String = "USD"
     @State private var isDeleted = false
     @State private var showEmojiPicker = false
 
@@ -23,8 +22,8 @@ struct SubscriptionDetailView: View {
                             RoundedRectangle(cornerRadius: 8)
                                 .fill(Color(.systemGray5))
                                 .frame(width: 44, height: 44)
-                            Text(subscription.emoji)
-                                .font(.title2)
+                            EmojiView(emoji: subscription.emoji, size: 22)
+                                .frame(width: 44, height: 44)
                         }
                     }
                     .buttonStyle(.plain)
@@ -78,29 +77,8 @@ struct SubscriptionDetailView: View {
     }
 
     private func markAsRenewed() {
-        let component: Calendar.Component = subscription.billingCycle == .monthly ? .month : .year
-        if let newDate = Calendar.current.date(byAdding: component, value: 1, to: subscription.nextRenewalDate) {
-            subscription.nextRenewalDate = newDate
-            NotificationManager.shared.schedule(for: subscription)
-            updateWidgetSnapshot()
-        }
-    }
-
-    private func updateWidgetSnapshot() {
-        guard let defaults = UserDefaults(suiteName: "group.com.hugohodinka.Sublist"),
-              let sub = allSubscriptions.first else { return }
-        struct Snapshot: Codable {
-            let name: String; let emoji: String
-            let amount: Double; let billingCycle: String
-            let nextRenewalDate: Date; let currency: String
-        }
-        if let data = try? JSONEncoder().encode(Snapshot(
-            name: sub.name, emoji: sub.emoji,
-            amount: sub.amount, billingCycle: sub.billingCycle.rawValue,
-            nextRenewalDate: sub.nextRenewalDate, currency: currency
-        )) {
-            defaults.set(data, forKey: "widgetNextSubscription")
-            WidgetCenter.shared.reloadAllTimelines()
-        }
+        subscription.markAsRenewed()
+        NotificationManager.shared.schedule(for: subscription)
+        updateWidgetSnapshot(from: allSubscriptions, currency: currency)
     }
 }

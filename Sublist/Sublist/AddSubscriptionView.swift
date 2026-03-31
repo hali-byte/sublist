@@ -3,6 +3,11 @@ import SwiftData
 
 // MARK: - Popular preset
 
+#Preview {
+      AddSubscriptionView()
+          .modelContainer(for: Subscription.self, inMemory: true)
+  }
+
 struct PopularSubscription: Identifiable, Equatable {
     let id = UUID()
     let name: String
@@ -37,7 +42,7 @@ struct AddSubscriptionView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
-    @AppStorage("currency") private var currency: String = "USD"
+    @AppStorage(AppConstants.currencyKey) private var currency: String = "USD"
     @State private var name = ""
     @State private var amountText: String = ""
     @State private var billingCycle = BillingCycle.monthly
@@ -76,7 +81,8 @@ struct AddSubscriptionView: View {
                                 RoundedRectangle(cornerRadius: 8)
                                     .fill(Color(.systemGray5))
                                     .frame(width: 44, height: 44)
-                                Text(emoji).font(.title2)
+                                EmojiView(emoji: emoji, size: 22)
+                                .frame(width: 44, height: 44)
                             }
                         }
                         .buttonStyle(.plain)
@@ -161,47 +167,3 @@ struct AddSubscriptionView: View {
     }
 }
 
-// MARK: - Card
-
-private struct PopularCard: View {
-    let preset: PopularSubscription
-    let isSelected: Bool
-
-    var body: some View {
-        VStack(spacing: 6) {
-            AsyncImage(url: URL(string: "https://logo.clearbit.com/\(preset.domain)")) { phase in
-                if case .success(let image) = phase {
-                    image
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 38, height: 38)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                } else {
-                    Text(preset.emoji)
-                        .font(.system(size: 28))
-                        .frame(width: 38, height: 38)
-                }
-            }
-            Text(preset.name)
-                .font(.caption2)
-                .fontWeight(.medium)
-                .foregroundStyle(isSelected ? Color.accentColor : .primary)
-                .lineLimit(2)
-                .multilineTextAlignment(.center)
-        }
-        .frame(width: 76, height: 80)
-        .background(
-            isSelected
-                ? Color.accentColor.opacity(0.12)
-                : Color(.systemGray6)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(
-                    isSelected ? Color.accentColor : Color.clear,
-                    lineWidth: 1.5
-                )
-        )
-    }
-}

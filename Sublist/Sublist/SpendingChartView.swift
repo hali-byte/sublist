@@ -35,7 +35,7 @@ extension Category {
 
 struct SpendingChartView: View {
     let subscriptions: [Subscription]
-    @AppStorage("currency") private var currency: String = "USD"
+    @AppStorage(AppConstants.currencyKey) private var currency: String = "USD"
     @State private var selectedID: String? = nil
 
     private var spends: [CategorySpend] {
