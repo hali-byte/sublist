@@ -111,13 +111,13 @@ struct ContentView: View {
                 Button("Mark as Renewed") {
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     withAnimation(.easeInOut(duration: 0.25)) {
-                        renewingIDs.insert(sub.id)
+                        _ = renewingIDs.insert(sub.id)
                     }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.1) {
                         UINotificationFeedbackGenerator().notificationOccurred(.success)
                         withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                             markAsRenewed(sub)
-                            renewingIDs.remove(sub.id)
+                            _ = renewingIDs.remove(sub.id)
                         }
                     }
                 }
