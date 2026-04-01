@@ -18,13 +18,8 @@ struct SubscriptionDetailView: View {
                     Button {
                         showEmojiPicker = true
                     } label: {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color(.systemGray5))
-                                .frame(width: 44, height: 44)
-                            SubscriptionIconView(name: subscription.name, emoji: subscription.emoji, size: 22)
-                                .frame(width: 44, height: 44)
-                        }
+                        SubscriptionIconView(name: subscription.name, emoji: subscription.emoji, size: 32)
+                            .frame(width: 44, height: 44)
                     }
                     .buttonStyle(.plain)
                     TextField("Name", text: $subscription.name)

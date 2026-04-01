@@ -79,13 +79,8 @@ struct AddSubscriptionView: View {
                 Section("Or Add Manually") {
                     HStack {
                         Button { showEmojiPicker = true } label: {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color(.systemGray5))
-                                    .frame(width: 44, height: 44)
-                                SubscriptionIconView(name: name, emoji: emoji, size: 22)
+                            SubscriptionIconView(name: name, emoji: emoji, size: 32)
                                 .frame(width: 44, height: 44)
-                            }
                         }
                         .buttonStyle(.plain)
 
