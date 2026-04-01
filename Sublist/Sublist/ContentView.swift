@@ -149,3 +149,8 @@ private struct RenewedButtonStyle: ButtonStyle {
             .animation(.spring(response: 0.2, dampingFraction: 0.7), value: configuration.isPressed)
     }
 }
+
+#Preview {
+    ContentView()
+        .modelContainer(for: Subscription.self, inMemory: true)
+}

@@ -207,3 +207,19 @@ struct SpendingChartView: View {
         .buttonStyle(.plain)
     }
 }
+
+#Preview {
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: Subscription.self, configurations: config)
+    let subs = [
+        Subscription(name: "Spotify",      amount: 9.99,  billingCycle: .monthly, nextRenewalDate: .now, category: .music,         emoji: "🎵"),
+        Subscription(name: "Netflix",       amount: 15.99, billingCycle: .monthly, nextRenewalDate: .now, category: .entertainment,  emoji: "🎬"),
+        Subscription(name: "iCloud+",       amount: 2.99,  billingCycle: .monthly, nextRenewalDate: .now, category: .cloud,          emoji: "☁️"),
+        Subscription(name: "ChatGPT Plus",  amount: 20.00, billingCycle: .monthly, nextRenewalDate: .now, category: .productivity,   emoji: "🤖"),
+    ]
+    subs.forEach { container.mainContext.insert($0) }
+    return NavigationStack {
+        SpendingChartView(subscriptions: subs)
+    }
+    .modelContainer(container)
+}

@@ -84,3 +84,8 @@ struct SettingsView: View {
         }
     }
 }
+
+#Preview {
+    SettingsView()
+        .modelContainer(for: Subscription.self, inMemory: true)
+}

@@ -48,3 +48,21 @@ struct SubscriptionRow: View {
         .padding(.vertical, 4)
     }
 }
+
+#Preview {
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: Subscription.self, configurations: config)
+    let sub = Subscription(
+        name: "Spotify",
+        amount: 9.99,
+        billingCycle: .monthly,
+        nextRenewalDate: Calendar.current.date(byAdding: .day, value: 14, to: .now)!,
+        category: .music,
+        emoji: "🎵"
+    )
+    container.mainContext.insert(sub)
+    return List {
+        SubscriptionRow(subscription: sub)
+    }
+    .modelContainer(container)
+}
