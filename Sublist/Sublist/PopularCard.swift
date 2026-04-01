@@ -19,7 +19,7 @@ struct PopularCard: View {
         .background(
             isSelected
                 ? Color.accentColor.opacity(0.12)
-                : Color(.systemGray6)
+                : Color.clear
         )
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
