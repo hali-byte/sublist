@@ -23,8 +23,8 @@ struct SubscriptionRow: View {
 
     var body: some View {
         HStack {
-            SubscriptionIconView(name: subscription.name, emoji: subscription.emoji, size: 32)
-                .frame(width: 44, height: 44)
+            SubscriptionIconView(name: subscription.name, emoji: subscription.emoji, size: 26)
+                .frame(width: 36, height: 36)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(subscription.name)
@@ -33,6 +33,7 @@ struct SubscriptionRow: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+            .padding(.trailing, 12)
 
             Spacer()
 
