@@ -124,6 +124,7 @@ struct AddSubscriptionView: View {
                     DatePicker("Next Renewal", selection: $nextRenewalDate, displayedComponents: .date)
                 }
             }
+            .scrollContentBackground(.hidden)
             .navigationTitle("Add Subscription")
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showEmojiPicker) {
