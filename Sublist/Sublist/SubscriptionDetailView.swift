@@ -13,17 +13,35 @@ struct SubscriptionDetailView: View {
 
     var body: some View {
         Form {
-            Section("Details") {
-                HStack {
+            // Identity header
+            Section {
+                VStack(spacing: 10) {
                     Button {
                         showEmojiPicker = true
                     } label: {
-                        SubscriptionIconView(name: subscription.name, emoji: subscription.emoji, size: 32)
-                            .frame(width: 44, height: 44)
+                        VStack(spacing: 5) {
+                            SubscriptionIconView(name: subscription.name, emoji: subscription.emoji, size: 48)
+                                .frame(width: 64, height: 64)
+                            Text("Change icon")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                     .buttonStyle(.plain)
-                    TextField("Name", text: $subscription.name)
+
+                    Text(subscription.name.isEmpty ? "Name" : subscription.name)
+                        .font(.title2.bold())
+                        .foregroundStyle(subscription.name.isEmpty ? .secondary : .primary)
+                        .multilineTextAlignment(.center)
                 }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+            }
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+
+            Section("Details") {
+                TextField("Name", text: $subscription.name)
                 Picker("Category", selection: $subscription.category) {
                     ForEach(Category.allCases, id: \.self) { cat in
                         Text(cat.rawValue).tag(cat)
@@ -72,26 +90,40 @@ struct SubscriptionDetailView: View {
     }
 
     private func markAsRenewed() {
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
         subscription.markAsRenewed()
         NotificationManager.shared.schedule(for: subscription)
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
         updateWidgetSnapshot(from: allSubscriptions, currency: currency)
     }
 }
 
 #Preview {
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: Subscription.self, configurations: config)
-    let sub = Subscription(
-        name: "Spotify",
-        amount: 9.99,
-        billingCycle: .monthly,
-        nextRenewalDate: Calendar.current.date(byAdding: .day, value: 14, to: .now)!,
-        category: .music,
-        emoji: "🎵"
-    )
-    container.mainContext.insert(sub)
-    return NavigationStack {
-        SubscriptionDetailView(subscription: sub)
+    NavigationStack {
+        SubscriptionDetailPreviewHelper()
     }
-    .modelContainer(container)
+    .modelContainer(for: Subscription.self, inMemory: true)
+}
+
+private struct SubscriptionDetailPreviewHelper: View {
+    @Query private var subscriptions: [Subscription]
+    @Environment(\.modelContext) private var context
+
+    var body: some View {
+        if let sub = subscriptions.first {
+            SubscriptionDetailView(subscription: sub)
+        } else {
+            ProgressView()
+                .task {
+                    context.insert(Subscription(
+                        name: "Spotify",
+                        amount: 9.99,
+                        billingCycle: .monthly,
+                        nextRenewalDate: Calendar.current.date(byAdding: .day, value: 14, to: .now)!,
+                        category: .music,
+                        emoji: "🎵"
+                    ))
+                }
+        }
+    }
 }

@@ -33,6 +33,7 @@ private let popularSubscriptions: [PopularSubscription] = [
     PopularSubscription(name: "1Password",     emoji: "🔐", category: .security,      billingCycle: .yearly,   domain: "1password.com"),
     PopularSubscription(name: "NordVPN",       emoji: "🛡️", category: .security,      billingCycle: .yearly,   domain: "nordvpn.com"),
     PopularSubscription(name: "Duolingo",      emoji: "🦉", category: .education,     billingCycle: .monthly,  domain: "duolingo.com"),
+    PopularSubscription(name: "Crunchyroll",   emoji: "🎌", category: .entertainment, billingCycle: .monthly,  domain: "crunchyroll.com"),
     PopularSubscription(name: "NYT",           emoji: "📰", category: .news,          billingCycle: .monthly,  domain: "nytimes.com"),
 ]
 
@@ -167,6 +168,7 @@ struct AddSubscriptionView: View {
         )
         modelContext.insert(sub)
         NotificationManager.shared.schedule(for: sub)
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
         dismiss()
     }
 }

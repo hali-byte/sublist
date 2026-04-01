@@ -3,12 +3,13 @@ import SwiftData
 
 struct SubscriptionRow: View {
     let subscription: Subscription
+    var isGrouped: Bool = false
     @AppStorage(AppConstants.currencyKey) private var currency: String = "USD"
 
     private var renewalLabel: String {
         switch subscription.daysUntilRenewal {
         case ..<0: return "Overdue"
-        case 0:    return "Today"
+        case 0:    return "Due today"
         case 1:    return "Tomorrow"
         default:   return "In \(subscription.daysUntilRenewal)d"
         }
@@ -23,43 +24,90 @@ struct SubscriptionRow: View {
     }
 
     var body: some View {
+        if isGrouped {
+            rowContent
+        } else {
+            rowContent
+                .background(Color(.secondarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+        }
+    }
+
+    private var rowContent: some View {
         HStack(spacing: 14) {
-            SubscriptionIconView(name: subscription.name, emoji: subscription.emoji, size: 26)
-                .frame(width: 36, height: 36)
+            SubscriptionIconView(name: subscription.name, emoji: subscription.emoji, size: 22)
+                .frame(width: 30, height: 30)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(subscription.name)
                     .font(.headline)
-                Text(subscription.category.rawValue)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                HStack(spacing: 5) {
+                    Text(subscription.billingCycle.rawValue)
+                        .font(.caption2.weight(.medium))
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(Color(.tertiarySystemFill))
+                        .clipShape(Capsule())
+                        .fixedSize()
+                    Text("·")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                    Text(subscription.category.rawValue)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+                .lineLimit(1)
             }
-            .padding(.trailing, 12)
 
             Spacer()
 
-            VStack(alignment: .trailing, spacing: 4) {
+            VStack(alignment: .trailing, spacing: 2) {
                 Text(subscription.amount, format: .currency(code: currency))
-                    .font(.headline.monospacedDigit())
-                Text(renewalLabel)
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(renewalColor)
+                    .font(.subheadline.bold().monospacedDigit())
+                if subscription.billingCycle == .yearly {
+                    Text("≈ \(subscription.monthlyCost.formatted(.currency(code: currency)))/mo")
+                        .font(.caption2.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+                if subscription.daysUntilRenewal <= 0 {
+                    Text(renewalLabel)
+                        .font(.caption.weight(.medium).monospacedDigit())
+                        .foregroundStyle(.red)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color.red.opacity(0.1))
+                        .clipShape(Capsule())
+                } else {
+                    Text(renewalLabel)
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(renewalColor)
+                }
             }
         }
-        .padding(.vertical, 4)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
     }
 }
 
 #Preview {
-    let sub = Subscription(
-        name: "Spotify",
-        amount: 9.99,
-        billingCycle: .monthly,
-        nextRenewalDate: Calendar.current.date(byAdding: .day, value: 14, to: .now)!,
-        category: .music,
-        emoji: "🎵"
-    )
-    List {
-        SubscriptionRow(subscription: sub)
+    let subs = [
+        Subscription(name: "Netflix",  amount: 15.99, billingCycle: .monthly,
+                     nextRenewalDate: .now,
+                     category: .entertainment, emoji: "🎬"),
+        Subscription(name: "iCloud+",  amount: 35.99, billingCycle: .yearly,
+                     nextRenewalDate: Calendar.current.date(byAdding: .day, value: 45, to: .now)!,
+                     category: .cloud, emoji: "☁️"),
+        Subscription(name: "Spotify",  amount: 9.99,  billingCycle: .monthly,
+                     nextRenewalDate: Calendar.current.date(byAdding: .day, value: 4, to: .now)!,
+                     category: .music, emoji: "🎵"),
+    ]
+    VStack(spacing: 10) {
+        SubscriptionRow(subscription: subs[0])
+        SubscriptionRow(subscription: subs[1])
+        SubscriptionRow(subscription: subs[2], isGrouped: true)
     }
+    .padding()
+    .background(Color(.systemGroupedBackground))
 }

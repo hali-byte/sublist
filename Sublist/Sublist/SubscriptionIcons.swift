@@ -15,6 +15,8 @@ func bundledIconName(for name: String) -> String? {
         "icloud+":      "icon_icloud",
         "google one":   "icon_google_one",
         "notion":       "icon_notion",
+        "duolingo":     "icon_duolingo",
+        "crunchyroll":  "icon_crunchyroll",
     ]
     return lookup[name.lowercased().trimmingCharacters(in: .whitespaces)]
 }
