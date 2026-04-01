@@ -51,8 +51,6 @@ struct SubscriptionRow: View {
 }
 
 #Preview {
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: Subscription.self, configurations: config)
     let sub = Subscription(
         name: "Spotify",
         amount: 9.99,
@@ -61,9 +59,7 @@ struct SubscriptionRow: View {
         category: .music,
         emoji: "🎵"
     )
-    container.mainContext.insert(sub)
     List {
         SubscriptionRow(subscription: sub)
     }
-    .modelContainer(container)
 }
