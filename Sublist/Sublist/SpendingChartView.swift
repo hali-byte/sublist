@@ -1,5 +1,6 @@
 import SwiftUI
 import Charts
+import SwiftData
 
 // MARK: - Data model
 
@@ -218,7 +219,7 @@ struct SpendingChartView: View {
         Subscription(name: "ChatGPT Plus",  amount: 20.00, billingCycle: .monthly, nextRenewalDate: .now, category: .productivity,   emoji: "🤖"),
     ]
     subs.forEach { container.mainContext.insert($0) }
-    return NavigationStack {
+    NavigationStack {
         SpendingChartView(subscriptions: subs)
     }
     .modelContainer(container)

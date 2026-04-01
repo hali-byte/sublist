@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct SubscriptionRow: View {
     let subscription: Subscription
@@ -61,7 +62,7 @@ struct SubscriptionRow: View {
         emoji: "🎵"
     )
     container.mainContext.insert(sub)
-    return List {
+    List {
         SubscriptionRow(subscription: sub)
     }
     .modelContainer(container)
