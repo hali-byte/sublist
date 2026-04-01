@@ -29,5 +29,18 @@ struct PopularCard: View {
                     lineWidth: 1.5
                 )
         )
+        .shadow(
+            color: Color.accentColor.opacity(isSelected ? 0.2 : 0),
+            radius: 6, x: 0, y: 2
+        )
+        .animation(.easeInOut(duration: 0.15), value: isSelected)
+    }
+}
+
+struct ScalePressButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
+            .animation(.spring(response: 0.2, dampingFraction: 0.7), value: configuration.isPressed)
     }
 }

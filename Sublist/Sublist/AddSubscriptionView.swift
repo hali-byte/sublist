@@ -60,11 +60,13 @@ struct AddSubscriptionView: View {
                     ScrollView(.horizontal, showsIndicators: false) {
                         LazyHStack(spacing: 10) {
                             ForEach(popularSubscriptions) { preset in
-                                PopularCard(
-                                    preset: preset,
-                                    isSelected: selectedPopular == preset
-                                )
-                                .onTapGesture { apply(preset) }
+                                Button { apply(preset) } label: {
+                                    PopularCard(
+                                        preset: preset,
+                                        isSelected: selectedPopular == preset
+                                    )
+                                }
+                                .buttonStyle(ScalePressButtonStyle())
                             }
                         }
                         .padding(.horizontal, 2)

@@ -22,12 +22,14 @@ struct ContentView: View {
                             Label("Per Month", systemImage: "calendar")
                             Spacer()
                             Text(monthlyTotal, format: .currency(code: currency))
+                                .font(.body.monospacedDigit())
                                 .foregroundStyle(.secondary)
                         }
                         HStack {
                             Label("Per Year", systemImage: "dollarsign.circle")
                             Spacer()
                             Text(monthlyTotal * 12, format: .currency(code: currency))
+                                .font(.body.monospacedDigit())
                                 .foregroundStyle(.secondary)
                         }
                         NavigationLink(destination: SpendingChartView(subscriptions: subscriptions)) {
@@ -41,6 +43,7 @@ struct ContentView: View {
                         NavigationLink(destination: SubscriptionDetailView(subscription: sub)) {
                             SubscriptionRow(subscription: sub)
                         }
+                        .transition(.opacity.combined(with: .offset(y: 6)))
                         .listRowSeparator(sub.daysUntilRenewal <= 0 ? .hidden : .automatic, edges: .bottom)
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             Button(role: .destructive) {
@@ -76,6 +79,7 @@ struct ContentView: View {
                     }
                 }
             }
+            .animation(.spring(response: 0.35, dampingFraction: 0.85), value: subscriptions.count)
             .overlay {
                 if subscriptions.isEmpty {
                     ContentUnavailableView(
@@ -134,7 +138,14 @@ private struct RenewedButtonStyle: ButtonStyle {
                 Capsule()
                     .fill(filled ? Color.green : Color.clear)
                     .overlay(Capsule().strokeBorder(Color.green, lineWidth: 1.5))
+                    .shadow(
+                        color: Color.green.opacity(filled ? 0.35 : 0.15),
+                        radius: filled ? 6 : 0,
+                        x: 0, y: filled ? 2 : 0
+                    )
             )
-            .animation(.easeInOut(duration: 0.15), value: filled)
+            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
+            .animation(.spring(response: 0.2, dampingFraction: 0.7), value: filled)
+            .animation(.spring(response: 0.2, dampingFraction: 0.7), value: configuration.isPressed)
     }
 }

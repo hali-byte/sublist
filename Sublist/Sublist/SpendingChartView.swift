@@ -106,30 +106,36 @@ struct SpendingChartView: View {
     }
 
     private var centerLabel: some View {
-        VStack(spacing: 3) {
+        ZStack {
             if let s = selected {
-                Text(s.category.rawValue)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: 110)
-                Text(s.amount, format: .currency(code: currency))
-                    .font(.title3.bold())
-                Text("\(Int((s.amount / total) * 100))%")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                VStack(spacing: 3) {
+                    Text(s.category.rawValue)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: 110)
+                    Text(s.amount, format: .currency(code: currency))
+                        .font(.title3.bold().monospacedDigit())
+                    Text("\(Int((s.amount / total) * 100))%")
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+                .transition(.opacity.combined(with: .offset(y: 4)))
             } else {
-                Text("per month")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Text(total, format: .currency(code: currency))
-                    .font(.title3.bold())
-                Text("\(spends.count) categories")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                VStack(spacing: 3) {
+                    Text("per month")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text(total, format: .currency(code: currency))
+                        .font(.title3.bold().monospacedDigit())
+                    Text("\(spends.count) categories")
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+                .transition(.opacity.combined(with: .offset(y: -4)))
             }
         }
-        .animation(.easeInOut(duration: 0.15), value: selectedID)
+        .animation(.easeInOut(duration: 0.2), value: selectedID)
     }
 
     // MARK: - Breakdown card
@@ -171,7 +177,7 @@ struct SpendingChartView: View {
                             .font(.subheadline.monospacedDigit())
                             .foregroundStyle(.primary)
                         Text("\(Int(pct * 100))%")
-                            .font(.caption2)
+                            .font(.caption2.monospacedDigit())
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -186,8 +192,9 @@ struct SpendingChartView: View {
                     ZStack(alignment: .leading) {
                         Color(.systemGray5)
                         spend.category.chartColor
-                            .opacity(0.55)
+                            .opacity(selectedID == nil || selectedID == spend.id ? 0.55 : 0.15)
                             .frame(width: geo.size.width * pct)
+                            .animation(.easeInOut(duration: 0.2), value: selectedID)
                     }
                 }
                 .frame(height: 2)
