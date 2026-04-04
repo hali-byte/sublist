@@ -4572,99 +4572,51 @@
       "comment": "Monthly equivalent cost for yearly subscriptions. Parameter is the formatted price.",
       "localizations": {
         "en": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "≈ %@/mo"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "≈ %@/mo"
           }
         },
         "es": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "≈ %@/mes"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "≈ %@/mes"
           }
         },
         "fr": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "≈ %@/mois"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "≈ %@/mois"
           }
         },
         "de": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "≈ %@/Mon."
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "≈ %@/Mon."
           }
         },
         "it": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "≈ %@/mese"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "≈ %@/mese"
           }
         },
         "ja": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "≈ %@/月"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "≈ %@/月"
           }
         },
         "zh-Hans": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "≈ %@/月"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "≈ %@/月"
           }
         },
         "pt-BR": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "≈ %@/mês"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "≈ %@/mês"
           }
         }
       }
