@@ -50,6 +50,13 @@ class Subscription {
 enum BillingCycle: String, Codable, CaseIterable {
     case monthly = "Monthly"
     case yearly  = "Yearly"
+
+    var localizedName: String {
+        switch self {
+        case .monthly: String(localized: "Monthly", comment: "Monthly billing cycle")
+        case .yearly:  String(localized: "Yearly",  comment: "Yearly billing cycle")
+        }
+    }
 }
 
 enum Category: String, Codable, CaseIterable {
@@ -66,4 +73,22 @@ enum Category: String, Codable, CaseIterable {
     case cloud         = "Cloud Storage"
     case security      = "Security & VPN"
     case other         = "Other"
+
+    var localizedName: String {
+        switch self {
+        case .entertainment: String(localized: "Entertainment",     comment: "Subscription category")
+        case .music:         String(localized: "Music",             comment: "Subscription category")
+        case .gaming:        String(localized: "Gaming",            comment: "Subscription category")
+        case .productivity:  String(localized: "Productivity",      comment: "Subscription category")
+        case .software:      String(localized: "Software",          comment: "Subscription category")
+        case .news:          String(localized: "News & Reading",    comment: "Subscription category")
+        case .fitness:       String(localized: "Fitness",           comment: "Subscription category")
+        case .health:        String(localized: "Health & Wellness", comment: "Subscription category")
+        case .education:     String(localized: "Education",         comment: "Subscription category")
+        case .finance:       String(localized: "Finance",           comment: "Subscription category")
+        case .cloud:         String(localized: "Cloud Storage",     comment: "Subscription category")
+        case .security:      String(localized: "Security & VPN",    comment: "Subscription category")
+        case .other:         String(localized: "Other",             comment: "Subscription category")
+        }
+    }
 }

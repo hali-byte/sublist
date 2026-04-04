@@ -110,7 +110,7 @@ struct SpendingChartView: View {
         ZStack {
             if let s = selected {
                 VStack(spacing: 3) {
-                    Text(s.category.rawValue)
+                    Text(s.category.localizedName)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -167,7 +167,7 @@ struct SpendingChartView: View {
                         .fill(spend.category.chartColor)
                         .frame(width: 10, height: 10)
 
-                    Text(spend.category.rawValue)
+                    Text(spend.category.localizedName)
                         .font(.subheadline)
                         .foregroundStyle(.primary)
 

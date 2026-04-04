@@ -126,6 +126,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 9A1EA5842F5322C50091B2F0 /* Build configuration list for PBXNativeTarget "SublistWidgetExtension" */;
 			buildPhases = (
+				9A5C1C002F5322C40091B2F0 /* Sync Widget Icons */,
 				9A1EA56A2F5322C40091B2F0 /* Sources */,
 				9A1EA56B2F5322C40091B2F0 /* Frameworks */,
 				9A1EA56C2F5322C40091B2F0 /* Resources */,
@@ -192,6 +193,13 @@
 			knownRegions = (
 				en,
 				Base,
+				es,
+				"zh-Hans",
+				ja,
+				it,
+				fr,
+				de,
+				"pt-BR",
 			);
 			mainGroup = 9AC3B03E2F5227E600390BF7;
 			minimizedProjectReferenceProxies = 1;
@@ -222,6 +230,28 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		9A5C1C002F5322C40091B2F0 /* Sync Widget Icons */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Sync Widget Icons";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "set -e\nMAIN=\"${SRCROOT}/Sublist/Assets.xcassets\"\nWIDGET=\"${SRCROOT}/SublistWidget/Assets.xcassets\"\nfor src in \"$MAIN\"/icon_*.imageset; do\n  name=$(basename \"$src\")\n  if [ ! -d \"$WIDGET/$name\" ]; then\n    echo \"note: Syncing widget icon: $name\"\n    cp -r \"$src\" \"$WIDGET/$name\"\n  fi\ndone\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		9A1EA56A2F5322C40091B2F0 /* Sources */ = {
@@ -259,6 +289,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = RN7WLWN599;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SublistWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = SublistWidget;
@@ -292,6 +323,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = RN7WLWN599;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SublistWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = SublistWidget;

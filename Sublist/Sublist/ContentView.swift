@@ -60,7 +60,7 @@ struct ContentView: View {
                     .animation(.spring(response: 0.35, dampingFraction: 0.85), value: subscriptions.count)
                 }
             }
-            .navigationTitle("Sublist")
+            .navigationTitle("Your subscriptions")
             .navigationDestination(isPresented: $showingBreakdown) {
                 SpendingChartView(subscriptions: subscriptions)
             }

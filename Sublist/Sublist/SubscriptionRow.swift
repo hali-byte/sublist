@@ -8,10 +8,10 @@ struct SubscriptionRow: View {
 
     private var renewalLabel: String {
         switch subscription.daysUntilRenewal {
-        case ..<0: return "Overdue"
-        case 0:    return "Due today"
-        case 1:    return "Tomorrow"
-        default:   return "In \(subscription.daysUntilRenewal)d"
+        case ..<0: return String(localized: "Overdue",   comment: "Subscription is past its renewal date")
+        case 0:    return String(localized: "Due today", comment: "Subscription renews today")
+        case 1:    return String(localized: "Tomorrow",  comment: "Subscription renews tomorrow")
+        default:   return String(localized: "In \(subscription.daysUntilRenewal) days", comment: "Days until subscription renews")
         }
     }
 
@@ -43,7 +43,7 @@ struct SubscriptionRow: View {
                 Text(subscription.name)
                     .font(.headline)
                 HStack(spacing: 5) {
-                    Text(subscription.billingCycle.rawValue)
+                    Text(subscription.billingCycle.localizedName)
                         .font(.caption2.weight(.medium))
                         .padding(.horizontal, 5)
                         .padding(.vertical, 2)
@@ -53,7 +53,7 @@ struct SubscriptionRow: View {
                     Text("·")
                         .font(.caption)
                         .foregroundStyle(.tertiary)
-                    Text(subscription.category.rawValue)
+                    Text(subscription.category.localizedName)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)

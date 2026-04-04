@@ -62,6 +62,17 @@ struct SublistProvider: TimelineProvider {
     }
 }
 
+// MARK: - Colour palette (matches new Sublist icon scheme)
+
+private extension Color {
+    /// Dark navy — matches the icon background #050F2F
+    static let sublistBackground = Color(red: 0.020, green: 0.059, blue: 0.184)
+    /// Medium periwinkle — lightest layer from icon #7989BF
+    static let sublistPeriwinkle = Color(red: 0.475, green: 0.537, blue: 0.749)
+    /// Mid-blue layer from icon #455DAC
+    static let sublistMidBlue    = Color(red: 0.271, green: 0.365, blue: 0.675)
+}
+
 // MARK: - Widget view
 
 struct SublistWidgetView: View {
@@ -81,7 +92,7 @@ struct SublistWidgetView: View {
             // Top right — context label
             Text("UP NEXT")
                 .font(.caption2.weight(.bold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.sublistPeriwinkle)
                 .kerning(0.6)
 
             // Right below — renewal urgency
@@ -103,13 +114,13 @@ struct SublistWidgetView: View {
                     }
                     Text(s.name)
                         .font(.footnote.weight(.semibold))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.sublistPeriwinkle)
                         .lineLimit(1)
                 }
 
                 Text(s.amount, format: .currency(code: s.currency))
                     .font(.title2.weight(.bold).monospacedDigit())
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(.white)
                     .minimumScaleFactor(0.6)
                     .lineLimit(1)
             }
@@ -123,10 +134,10 @@ struct SublistWidgetView: View {
         VStack(spacing: 8) {
             Image(systemName: "creditcard")
                 .font(.title2)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.sublistMidBlue)
             Text("No subscriptions")
                 .font(.caption2)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.sublistPeriwinkle)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -134,18 +145,18 @@ struct SublistWidgetView: View {
 
     @ViewBuilder
     private func renewalBadge(days: Int) -> some View {
-        let (label, color, urgent): (String, Color, Bool) = {
+        let (label, color, urgent): (LocalizedStringKey, Color, Bool) = {
             switch days {
-            case ..<0: return ("Overdue",          Color.red,      true)
-            case 0:    return ("Today",             Color.red,      true)
-            case 1:    return ("Tomorrow",          Color.orange,   true)
-            default:   return ("In \(days) days",   Color.secondary, false)
+            case ..<0: return ("Overdue",          .red,              true)
+            case 0:    return ("Today",             .red,              true)
+            case 1:    return ("Tomorrow",          .orange,           true)
+            default:   return ("In \(days) days",   .sublistPeriwinkle, false)
             }
         }()
 
         Text(label)
             .font(.footnote.weight(.semibold))
-            .foregroundStyle(urgent ? color : Color.secondary)
+            .foregroundStyle(urgent ? color : Color.sublistPeriwinkle)
     }
 }
 
@@ -157,7 +168,7 @@ struct SublistWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: SublistProvider()) { entry in
             SublistWidgetView(entry: entry)
-                .containerBackground(.background, for: .widget)
+                .containerBackground(Color("WidgetBackground"), for: .widget)
         }
         .configurationDisplayName("Next Renewal")
         .description("Your next upcoming subscription at a glance.")

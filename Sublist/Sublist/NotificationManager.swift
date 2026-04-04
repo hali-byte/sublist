@@ -43,9 +43,14 @@ final class NotificationManager {
               fireDate > Date() else { return }
 
         let content = UNMutableNotificationContent()
-        content.title = "Subscription Renewing Tomorrow"
+        content.title = String(localized: "Subscription Renewing Tomorrow",
+                               comment: "Push notification title for day-before renewal reminder")
         let currency = UserDefaults.standard.string(forKey: AppConstants.currencyKey) ?? "USD"
-        content.body = "\(subscription.emoji) \(subscription.name) renews tomorrow for \(subscription.amount.formatted(.currency(code: currency)))"
+        let formattedAmount = subscription.amount.formatted(.currency(code: currency))
+        content.body = String(
+            localized: "\(subscription.emoji) \(subscription.name) renews tomorrow for \(formattedAmount)",
+            comment: "Push notification body. Parameters: emoji, subscription name, formatted price"
+        )
         content.sound = .default
 
         var components = Calendar.current.dateComponents([.year, .month, .day], from: fireDate)

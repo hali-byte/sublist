@@ -94,7 +94,7 @@ struct AddSubscriptionView: View {
                     }
                     Picker("Category", selection: $category) {
                         ForEach(Category.allCases, id: \.self) { cat in
-                            Text(cat.rawValue).tag(cat)
+                            Text(cat.localizedName).tag(cat)
                         }
                     }
                 }
@@ -119,7 +119,7 @@ struct AddSubscriptionView: View {
                     }
                     Picker("Billing Cycle", selection: $billingCycle) {
                         ForEach(BillingCycle.allCases, id: \.self) { cycle in
-                            Text(cycle.rawValue).tag(cycle)
+                            Text(cycle.localizedName).tag(cycle)
                         }
                     }
                     DatePicker("Next Renewal", selection: $nextRenewalDate, displayedComponents: .date)

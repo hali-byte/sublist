@@ -36,7 +36,7 @@ struct EmojiPickerView: View {
                 VStack(alignment: .leading, spacing: 24) {
                     ForEach(sections, id: \.title) { section in
                         VStack(alignment: .leading, spacing: 8) {
-                            Text(section.title)
+                            Text(LocalizedStringKey(section.title))
                                 .font(.caption)
                                 .fontWeight(.semibold)
                                 .foregroundStyle(.secondary)
