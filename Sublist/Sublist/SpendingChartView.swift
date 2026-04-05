@@ -117,7 +117,7 @@ struct SpendingChartView: View {
                         .frame(maxWidth: 110)
                     Text(s.amount, format: .currency(code: currency))
                         .font(.title3.bold().monospacedDigit())
-                    Text("\(Int((s.amount / total) * 100))%")
+                    Text((s.amount / total).formatted(.percent.precision(.fractionLength(0))))
                         .font(.caption.monospacedDigit())
                         .foregroundStyle(.secondary)
                 }
@@ -177,7 +177,7 @@ struct SpendingChartView: View {
                         Text(spend.amount, format: .currency(code: currency))
                             .font(.subheadline.monospacedDigit())
                             .foregroundStyle(.primary)
-                        Text("\(Int(pct * 100))%")
+                        Text(pct.formatted(.percent.precision(.fractionLength(0))))
                             .font(.caption2.monospacedDigit())
                             .foregroundStyle(.secondary)
                     }

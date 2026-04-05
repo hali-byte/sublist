@@ -26,10 +26,18 @@ struct SettingsView: View {
                         Text("EUR — Euro").tag("EUR")
                         Text("GBP — British Pound").tag("GBP")
                         Text("AUD — Australian Dollar").tag("AUD")
+                        Text("CAD — Canadian Dollar").tag("CAD")
                         Text("CNY — Chinese Yuan").tag("CNY")
                         Text("SGD — Singapore Dollar").tag("SGD")
                         Text("SEK — Swedish Krona").tag("SEK")
                         Text("PLN — Polish Złoty").tag("PLN")
+                        Text("DKK — Danish Krone").tag("DKK")
+                        Text("NOK — Norwegian Krone").tag("NOK")
+                        Text("CHF — Swiss Franc").tag("CHF")
+                        Text("BRL — Brazilian Real").tag("BRL")
+                        Text("JPY — Japanese Yen").tag("JPY")
+                        Text("KRW — South Korean Won").tag("KRW")
+                        Text("INR — Indian Rupee").tag("INR")
                     }
                 }
 
