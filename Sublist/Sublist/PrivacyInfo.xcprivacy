@@ -13,25 +13,8 @@
     <key>NSPrivacyCollectedDataTypes</key>
     <array/>
 
-    <!--
-        Required-reason API declarations.
-        SwiftData accesses file timestamps internally (C617.1: timestamps of
-        files created by this app, used solely within the app).
-        SwiftUI/SwiftData may read UserDefaults for internal state (CA92.1:
-        reading defaults written by the app itself).
-        Network connections used for pricing fetch and geolocation (1E8B.1:
-        app functionality that requires network access).
-    -->
     <key>NSPrivacyAccessedAPITypes</key>
     <array>
-        <dict>
-            <key>NSPrivacyAccessedAPIType</key>
-            <string>NSPrivacyAccessedAPICategoryNetworkConnections</string>
-            <key>NSPrivacyAccessedAPITypeReasons</key>
-            <array>
-                <string>1E8B.1</string>
-            </array>
-        </dict>
         <dict>
             <key>NSPrivacyAccessedAPIType</key>
             <string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
