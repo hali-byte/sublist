@@ -4,6 +4,7 @@ import SwiftData
 struct SubscriptionRow: View {
     let subscription: Subscription
     var isGrouped: Bool = false
+    var priceChange: PriceChangeType? = nil
     @AppStorage(AppConstants.currencyKey) private var currency: String = "USD"
 
     private var renewalLabel: String {
@@ -71,6 +72,9 @@ struct SubscriptionRow: View {
                         .font(.caption2.monospacedDigit())
                         .foregroundStyle(.secondary)
                 }
+                if let change = priceChange {
+                    priceChangeBadge(change)
+                }
                 if subscription.daysUntilRenewal <= 0 {
                     Text(renewalLabel)
                         .font(.caption.weight(.medium).monospacedDigit())
@@ -88,6 +92,45 @@ struct SubscriptionRow: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
+    }
+
+    @ViewBuilder
+    private func priceChangeBadge(_ change: PriceChangeType) -> some View {
+        switch change {
+        case .increased:
+            HStack(spacing: 2) {
+                Image(systemName: "arrow.up")
+                Text("Price up")
+            }
+            .font(.caption2.weight(.medium))
+            .foregroundStyle(.red)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(Color.red.opacity(0.1))
+            .clipShape(Capsule())
+        case .decreased:
+            HStack(spacing: 2) {
+                Image(systemName: "arrow.down")
+                Text("Price down")
+            }
+            .font(.caption2.weight(.medium))
+            .foregroundStyle(.green)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(Color.green.opacity(0.1))
+            .clipShape(Capsule())
+        case .cheaperPlanAvailable:
+            HStack(spacing: 2) {
+                Image(systemName: "lightbulb.fill")
+                Text("Cheaper plan")
+            }
+            .font(.caption2.weight(.medium))
+            .foregroundStyle(.blue)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(Color.blue.opacity(0.1))
+            .clipShape(Capsule())
+        }
     }
 }
 

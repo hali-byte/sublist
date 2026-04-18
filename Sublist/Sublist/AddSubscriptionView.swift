@@ -36,16 +36,16 @@ private let popularSubscriptions: [PopularSubscription] = [
     PopularSubscription(name: "Spotify",       emoji: "🎵", category: .music,         billingCycle: .monthly,  domain: "spotify.com",       pricingProvider: SpotifyPricingProvider()),
     PopularSubscription(name: "Apple Music",   emoji: "🎶", category: .music,         billingCycle: .monthly,  domain: "music.apple.com",   pricingProvider: AppleMusicPricingProvider()),
     PopularSubscription(name: "YouTube",       emoji: "▶️", category: .entertainment, billingCycle: .monthly,  domain: "youtube.com",       pricingProvider: YouTubePricingProvider()),
-    PopularSubscription(name: "Disney+",       emoji: "✨", category: .entertainment, billingCycle: .monthly,  domain: "disneyplus.com"),
-    PopularSubscription(name: "Amazon Prime",  emoji: "📦", category: .entertainment, billingCycle: .yearly,   domain: "amazon.com"),
+    PopularSubscription(name: "Disney+",       emoji: "✨", category: .entertainment, billingCycle: .monthly,  domain: "disneyplus.com",   pricingProvider: DisneyPlusPricingProvider()),
+    PopularSubscription(name: "Amazon Prime",  emoji: "📦", category: .entertainment, billingCycle: .yearly,   domain: "amazon.com",       pricingProvider: AmazonPrimePricingProvider()),
     PopularSubscription(name: "Apple TV+",     emoji: "🍿", category: .entertainment, billingCycle: .monthly,  domain: "tv.apple.com",      pricingProvider: AppleTVPricingProvider()),
-    PopularSubscription(name: "Hulu",          emoji: "📺", category: .entertainment, billingCycle: .monthly,  domain: "hulu.com"),
+    PopularSubscription(name: "Hulu",          emoji: "📺", category: .entertainment, billingCycle: .monthly,  domain: "hulu.com",         pricingProvider: HuluPricingProvider()),
     PopularSubscription(name: "iCloud+",       emoji: "☁️", category: .cloud,         billingCycle: .monthly,  domain: "icloud.com",        pricingProvider: ICloudPricingProvider()),
     PopularSubscription(name: "Google One",    emoji: "🔵", category: .cloud,         billingCycle: .monthly,  domain: "one.google.com",    pricingProvider: GoogleOnePricingProvider()),
     PopularSubscription(name: "ChatGPT Plus",  emoji: "🤖", category: .productivity,  billingCycle: .monthly,  domain: "openai.com",        pricingProvider: ChatGPTPricingProvider()),
     PopularSubscription(name: "Notion",        emoji: "📝", category: .productivity,  billingCycle: .monthly,  domain: "notion.so",         pricingProvider: NotionPricingProvider()),
     PopularSubscription(name: "1Password",     emoji: "🔐", category: .security,      billingCycle: .yearly,   domain: "1password.com",     pricingProvider: OnePasswordPricingProvider()),
-    PopularSubscription(name: "NordVPN",       emoji: "🛡️", category: .security,      billingCycle: .yearly,   domain: "nordvpn.com"),
+    PopularSubscription(name: "NordVPN",       emoji: "🛡️", category: .security,      billingCycle: .yearly,   domain: "nordvpn.com",      pricingProvider: NordVPNPricingProvider()),
     PopularSubscription(name: "Duolingo",      emoji: "🦉", category: .education,     billingCycle: .monthly,  domain: "duolingo.com",      pricingProvider: DuolingoPricingProvider()),
     PopularSubscription(name: "Crunchyroll",   emoji: "🎌", category: .entertainment, billingCycle: .monthly,  domain: "crunchyroll.com",   pricingProvider: CrunchyrollPricingProvider()),
     PopularSubscription(name: "NYT",           emoji: "📰", category: .news,          billingCycle: .monthly,  domain: "nytimes.com",       pricingProvider: NYTPricingProvider()),
@@ -58,6 +58,7 @@ struct AddSubscriptionView: View {
     @Environment(\.dismiss) private var dismiss
 
     @AppStorage(AppConstants.currencyKey) private var currency: String = "USD"
+    @AppStorage(AppConstants.countryCodeKey) private var storedCountryCode: String = ""
     @State private var name = ""
     @State private var amountText: String = ""
     @State private var billingCycle = BillingCycle.monthly
@@ -73,6 +74,7 @@ struct AddSubscriptionView: View {
     @State private var countryOverrideCode: String? = nil
     @State private var showCountryPicker = false
     @State private var pricingTask: Task<Void, Never>? = nil
+    @State private var pricingRetryCount = 0
 
     var body: some View {
         NavigationStack {
@@ -250,12 +252,26 @@ struct AddSubscriptionView: View {
             .padding(.vertical, 4)
 
         case .fallback:
-            HStack(spacing: 8) {
-                Image(systemName: "exclamationmark.triangle")
-                    .foregroundStyle(.secondary)
-                Text("Sorry! We could not fetch the latest pricing for \(selectedPopular?.name ?? "this service"), add the price manually.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 8) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .foregroundStyle(.secondary)
+                    Text("Sorry! We could not fetch the latest pricing for \(selectedPopular?.name ?? "this service"), add the price manually.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+
+                if pricingRetryCount < 2, let preset = selectedPopular, preset.pricingProvider != nil {
+                    Button {
+                        pricingRetryCount += 1
+                        pricingState = .loading
+                        pricingTask?.cancel()
+                        pricingTask = Task { await loadPricing(for: preset) }
+                    } label: {
+                        Label("Retry", systemImage: "arrow.clockwise")
+                            .font(.footnote.weight(.medium))
+                    }
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 4)
@@ -282,6 +298,7 @@ struct AddSubscriptionView: View {
 
         pricingTask?.cancel()
         selectedPlan = nil
+        pricingRetryCount = 0
 
         if preset.pricingProvider != nil {
             pricingState = .loading
@@ -294,13 +311,31 @@ struct AddSubscriptionView: View {
     private func loadPricing(for preset: PopularSubscription) async {
         guard let provider = preset.pricingProvider, !Task.isCancelled else { return }
         do {
-            let geo = try await IPGeolocationService.shared.resolve()
-            let code = countryOverrideCode ?? geo.code
-            let name = countryOverrideCode.flatMap {
-                Locale.current.localizedString(forRegionCode: $0)
-            } ?? geo.name
+            let code: String
+            let name: String
+
+            if let override = countryOverrideCode {
+                code = override
+                name = Locale.current.localizedString(forRegionCode: override) ?? override
+            } else if !storedCountryCode.isEmpty {
+                code = storedCountryCode
+                name = Locale.current.localizedString(forRegionCode: storedCountryCode) ?? storedCountryCode
+            } else {
+                let geo = try await IPGeolocationService.shared.resolve()
+                code = geo.code
+                name = geo.name
+            }
             guard !Task.isCancelled else { return }
             let plans = try await PricingService.shared.fetchPlans(for: code, using: provider)
+
+            if !plans.isEmpty {
+                PriceRecordService.store(
+                    plans: plans,
+                    serviceName: preset.name,
+                    countryCode: code,
+                    in: modelContext
+                )
+            }
 
             pricingState = plans.isEmpty
                 ? .fallback(reason: "No plans found for \(name)")
@@ -334,62 +369,18 @@ struct AddSubscriptionView: View {
             emoji: emoji
         )
         modelContext.insert(sub)
+
+        if case .loaded = pricingState {
+            PriceRecordService.linkUnlinkedRecords(
+                serviceName: sub.name,
+                to: sub,
+                in: modelContext
+            )
+        }
+
         NotificationManager.shared.schedule(for: sub)
         UINotificationFeedbackGenerator().notificationOccurred(.success)
         dismiss()
-    }
-}
-
-// MARK: - Country picker
-
-struct CountryPickerView: View {
-    let initialCode: String
-    let onSelect: (String) -> Void
-
-    @Environment(\.dismiss) private var dismiss
-    @State private var searchText = ""
-
-    private let countries: [(code: String, name: String)] = {
-        Locale.Region.isoRegions
-            .compactMap { region -> (String, String)? in
-                guard let name = Locale.current.localizedString(forRegionCode: region.identifier) else { return nil }
-                return (region.identifier, name)
-            }
-            .sorted { $0.1 < $1.1 }
-    }()
-
-    private var filtered: [(code: String, name: String)] {
-        searchText.isEmpty ? countries :
-            countries.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
-    }
-
-    var body: some View {
-        NavigationStack {
-            List(filtered, id: \.code) { country in
-                Button {
-                    onSelect(country.code)
-                    dismiss()
-                } label: {
-                    HStack {
-                        Text(country.name)
-                        Spacer()
-                        if country.code == initialCode {
-                            Image(systemName: "checkmark")
-                                .foregroundStyle(.accent)
-                        }
-                    }
-                }
-                .buttonStyle(.plain)
-            }
-            .searchable(text: $searchText, prompt: "Search countries")
-            .navigationTitle("Select Country")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Cancel") { dismiss() }
-                }
-            }
-        }
     }
 }
 

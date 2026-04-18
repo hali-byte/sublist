@@ -11,6 +11,9 @@ class Subscription {
     var category: Category
     var emoji: String
 
+    @Relationship(deleteRule: .cascade, inverse: \PriceRecord.subscription)
+    var priceRecords: [PriceRecord] = []
+
     var monthlyCost: Double {
         billingCycle == .yearly ? amount / 12.0 : amount
     }

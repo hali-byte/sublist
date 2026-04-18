@@ -7,6 +7,7 @@ import SwiftData
 struct CategorySpend: Identifiable {
     let category: Category
     let amount: Double
+    let count: Int
     var id: String { category.rawValue }
 }
 
@@ -43,7 +44,7 @@ struct SpendingChartView: View {
         Dictionary(grouping: subscriptions, by: \.category)
             .compactMap { cat, subs -> CategorySpend? in
                 let total = subs.reduce(0) { $0 + $1.monthlyCost }
-                return total > 0 ? CategorySpend(category: cat, amount: total) : nil
+                return total > 0 ? CategorySpend(category: cat, amount: total, count: subs.count) : nil
             }
             .sorted { $0.amount > $1.amount }
     }
@@ -55,10 +56,28 @@ struct SpendingChartView: View {
         return spends.first { $0.id == id }
     }
 
+    private var insight: String? {
+        guard let top = spends.first, total > 0 else { return nil }
+        let pct = Int((top.amount / total) * 100)
+        let categoryName = top.category.localizedName
+        if pct >= 50 {
+            return String(localized: "\(categoryName) accounts for \(pct)% of your spend.", comment: "Insight when one category dominates spending")
+        }
+        if spends.count == 1 {
+            return String(localized: "All your subscriptions are in \(categoryName).", comment: "Insight when all subs are in one category")
+        }
+        let catCount = spends.count
+        let subCount = subscriptions.count
+        return String(localized: "\(catCount) categories across \(subCount) subscriptions.", comment: "Insight showing spread of subscriptions")
+    }
+
     var body: some View {
         ScrollView {
-            VStack(spacing: 24) {
+            VStack(spacing: 20) {
                 donutCard
+                if let text = insight {
+                    insightBanner(text)
+                }
                 breakdownCard
             }
             .padding(.horizontal)
@@ -67,6 +86,23 @@ struct SpendingChartView: View {
         .navigationTitle("Breakdown")
         .navigationBarTitleDisplayMode(.large)
         .background(Color(.systemGroupedBackground).ignoresSafeArea())
+    }
+
+    // MARK: - Insight banner
+
+    private func insightBanner(_ text: String) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: "lightbulb.fill")
+                .font(.subheadline)
+                .foregroundStyle(.yellow)
+            Text(text)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     // MARK: - Donut card
@@ -95,7 +131,6 @@ struct SpendingChartView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
-    /// Invisible tap target sized to the inner hole (innerRadius ratio 0.62 × ~130pt = ~80pt radius).
     private var centerHoleTapTarget: some View {
         Circle()
             .fill(Color.clear)
@@ -117,9 +152,16 @@ struct SpendingChartView: View {
                         .frame(maxWidth: 110)
                     Text(s.amount, format: .currency(code: currency))
                         .font(.title3.bold().monospacedDigit())
-                    Text((s.amount / total).formatted(.percent.precision(.fractionLength(0))))
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(.secondary)
+                    HStack(spacing: 4) {
+                        Text((s.amount / total).formatted(.percent.precision(.fractionLength(0))))
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                        Text("\u{00B7}")
+                            .foregroundStyle(.tertiary)
+                        Text("^[\(s.count) sub](inflect: true)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 .transition(.opacity.combined(with: .offset(y: 4)))
             } else {
@@ -144,14 +186,14 @@ struct SpendingChartView: View {
     private var breakdownCard: some View {
         VStack(spacing: 0) {
             ForEach(Array(spends.enumerated()), id: \.element.id) { index, spend in
-                breakdownRow(spend: spend, isLast: index == spends.count - 1)
+                breakdownRow(spend: spend, rank: index + 1, isLast: index == spends.count - 1)
             }
         }
         .background(Color(.secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
-    private func breakdownRow(spend: CategorySpend, isLast: Bool) -> some View {
+    private func breakdownRow(spend: CategorySpend, rank: Int, isLast: Bool) -> some View {
         let isSelected = selectedID == spend.id
         let pct = total > 0 ? spend.amount / total : 0
 
@@ -161,15 +203,24 @@ struct SpendingChartView: View {
             }
         } label: {
             VStack(spacing: 0) {
-                HStack(spacing: 14) {
-                    // Colour dot
-                    Circle()
-                        .fill(spend.category.chartColor)
-                        .frame(width: 10, height: 10)
+                HStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(spend.category.chartColor.opacity(0.15))
+                            .frame(width: 28, height: 28)
+                        Circle()
+                            .fill(spend.category.chartColor)
+                            .frame(width: 10, height: 10)
+                    }
 
-                    Text(spend.category.localizedName)
-                        .font(.subheadline)
-                        .foregroundStyle(.primary)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(spend.category.localizedName)
+                            .font(.subheadline)
+                            .foregroundStyle(.primary)
+                        Text("^[\(spend.count) subscription](inflect: true)")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                    }
 
                     Spacer()
 
@@ -183,25 +234,24 @@ struct SpendingChartView: View {
                     }
                 }
                 .padding(.horizontal, 16)
-                .padding(.vertical, 13)
+                .padding(.vertical, 12)
                 .background(isSelected
                     ? spend.category.chartColor.opacity(0.08)
                     : Color.clear)
 
-                // Percentage bar
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
                         Color(.systemGray5)
                         spend.category.chartColor
                             .opacity(selectedID == nil || selectedID == spend.id ? 0.55 : 0.15)
                             .frame(width: geo.size.width * pct)
-                            .animation(.easeInOut(duration: 0.2), value: selectedID)
+                            .animation(.easeInOut(duration: 0.3), value: selectedID)
                     }
                 }
                 .frame(height: 2)
 
                 if !isLast {
-                    Divider().padding(.leading, 40)
+                    Divider().padding(.leading, 52)
                 }
             }
         }

@@ -6,6 +6,11 @@ protocol SubscriptionPricingProvider {
     var serviceName: String { get }
     func pricingURL(for countryCode: String) -> URL
     var extractionHint: String { get }
+    var fallbackURLs: [URL] { get }
+}
+
+extension SubscriptionPricingProvider {
+    var fallbackURLs: [URL] { [] }
 }
 
 // MARK: - Spotify
@@ -217,11 +222,73 @@ struct NYTPricingProvider: SubscriptionPricingProvider {
     }
 }
 
+// MARK: - Disney+
+
+struct DisneyPlusPricingProvider: SubscriptionPricingProvider {
+    let serviceName = "Disney+"
+
+    func pricingURL(for countryCode: String) -> URL {
+        URL(string: "https://www.disneyplus.com/welcome/buy-now")!
+    }
+
+    var extractionHint: String {
+        "Extract Disney+ plan prices including Basic, Standard, and Premium tiers. Include monthly and annual pricing where available."
+    }
+
+    var fallbackURLs: [URL] {
+        [URL(string: "https://help.disneyplus.com/article/disneyplus-subscriptions-background")!]
+    }
+}
+
+// MARK: - Amazon Prime
+
+struct AmazonPrimePricingProvider: SubscriptionPricingProvider {
+    let serviceName = "Amazon Prime"
+
+    func pricingURL(for countryCode: String) -> URL {
+        URL(string: "https://www.amazon.com/gp/help/customer/display.html?nodeId=G6LDPN7YJHYKH2J6")!
+    }
+
+    var extractionHint: String {
+        "Extract Amazon Prime membership prices: monthly and annual plans. Include Prime Video standalone if available."
+    }
+}
+
+// MARK: - Hulu
+
+struct HuluPricingProvider: SubscriptionPricingProvider {
+    let serviceName = "Hulu"
+
+    func pricingURL(for countryCode: String) -> URL {
+        URL(string: "https://help.hulu.com/article/hulu-plans-workspace")!
+    }
+
+    var extractionHint: String {
+        "Extract Hulu plan prices: Basic (with ads), No Ads, and any bundle options. Monthly pricing preferred."
+    }
+
+    var fallbackURLs: [URL] {
+        [URL(string: "https://www.hulu.com/welcome")!]
+    }
+}
+
+// MARK: - NordVPN
+
+struct NordVPNPricingProvider: SubscriptionPricingProvider {
+    let serviceName = "NordVPN"
+
+    func pricingURL(for countryCode: String) -> URL {
+        URL(string: "https://support.nordvpn.com/general-info/billing/how-can-i-pay-for-my-nordvpn-subscription/")!
+    }
+
+    var extractionHint: String {
+        "Extract NordVPN plan prices: Standard, Plus, and Complete tiers. Include monthly and yearly pricing if available."
+    }
+}
+
 // MARK: - Registry
 
 enum ProviderRegistry {
-    /// Returns the pricing provider for a given preset service name, or nil if unsupported.
-    /// To add a new service, add a struct above and a case here.
     static func provider(for serviceName: String) -> (any SubscriptionPricingProvider)? {
         switch serviceName.lowercased() {
         case "netflix":       return NetflixPricingProvider()
@@ -237,8 +304,10 @@ enum ProviderRegistry {
         case "duolingo":      return DuolingoPricingProvider()
         case "crunchyroll":   return CrunchyrollPricingProvider()
         case "nyt":           return NYTPricingProvider()
-        // Disney+, Amazon Prime, Hulu: JS-only SPAs — pricing not in server HTML
-        // NordVPN: Cloudflare 403
+        case "disney+":       return DisneyPlusPricingProvider()
+        case "amazon prime":  return AmazonPrimePricingProvider()
+        case "hulu":          return HuluPricingProvider()
+        case "nordvpn":       return NordVPNPricingProvider()
         default:              return nil
         }
     }

@@ -3,13 +3,20 @@ import SwiftData
 
 struct ContentView: View {
     @Query(sort: \Subscription.nextRenewalDate) private var subscriptions: [Subscription]
+    @Query private var priceRecords: [PriceRecord]
     @Environment(\.modelContext) private var modelContext
     @AppStorage(AppConstants.currencyKey) private var currency: String = "USD"
+    @AppStorage(AppConstants.countryCodeKey) private var countryCode: String = ""
+    @AppStorage(AppConstants.showPriceChangeTags) private var showPriceChangeTags: Bool = true
     @State private var showingAddSheet = false
     @State private var showingSettings = false
     @State private var showingBreakdown = false
+    @State private var showingCalendar = false
     @State private var selectedSubscription: Subscription? = nil
     @State private var renewingIDs: Set<UUID> = []
+    @State private var showCountryPrompt = false
+    @State private var detectedCountryCode = ""
+    @State private var detectedCountryName = ""
 
     private var renewingSoon: [Subscription] {
         subscriptions.filter { $0.daysUntilRenewal <= 7 }
@@ -17,6 +24,17 @@ struct ContentView: View {
 
     private var upcoming: [Subscription] {
         subscriptions.filter { $0.daysUntilRenewal > 7 }
+    }
+
+    private var priceChanges: [UUID: PriceChangeType] {
+        guard showPriceChangeTags else { return [:] }
+        var result: [UUID: PriceChangeType] = [:]
+        for sub in subscriptions {
+            if let change = PriceChangeDetector.detectFromRecords(for: sub, in: modelContext) {
+                result[sub.id] = change
+            }
+        }
+        return result
     }
 
     var body: some View {
@@ -30,7 +48,8 @@ struct ContentView: View {
                             SummaryCard(
                                 subscriptions: subscriptions,
                                 currency: currency,
-                                onBreakdownTap: { showingBreakdown = true }
+                                onBreakdownTap: { showingBreakdown = true },
+                                onCalendarTap: { showingCalendar = true }
                             )
                             .listRowBackground(Color.clear)
                             .listRowSeparator(.hidden)
@@ -64,6 +83,9 @@ struct ContentView: View {
             .navigationDestination(isPresented: $showingBreakdown) {
                 SpendingChartView(subscriptions: subscriptions)
             }
+            .navigationDestination(isPresented: $showingCalendar) {
+                RenewalCalendarView(subscriptions: subscriptions)
+            }
             .navigationDestination(item: $selectedSubscription) { sub in
                 SubscriptionDetailView(subscription: sub)
             }
@@ -85,10 +107,29 @@ struct ContentView: View {
             .sheet(isPresented: $showingSettings) {
                 SettingsView()
             }
+            .alert("Set Your Country", isPresented: $showCountryPrompt) {
+                Button("Confirm") {
+                    countryCode = detectedCountryCode
+                }
+                Button("Change") {
+                    showingSettings = true
+                }
+            } message: {
+                Text("We detected you're in \(detectedCountryName). This is used to fetch accurate subscription pricing for your region.")
+            }
             .task {
                 await NotificationManager.shared.refreshStatus()
                 NotificationManager.shared.scheduleAll(for: subscriptions)
                 updateWidgetSnapshot(from: subscriptions, currency: currency)
+
+                if countryCode.isEmpty {
+                    do {
+                        let geo = try await IPGeolocationService.shared.resolve()
+                        detectedCountryCode = geo.code
+                        detectedCountryName = geo.name
+                        showCountryPrompt = true
+                    } catch {}
+                }
             }
             .onChange(of: subscriptions) { _, _ in
                 updateWidgetSnapshot(from: subscriptions, currency: currency)
@@ -96,12 +137,10 @@ struct ContentView: View {
         }
     }
 
-    // Card with tap-to-navigate (onTapGesture) and optional Mark as Renewed button.
-    // Using onTapGesture instead of a Button wrapper avoids nested-button conflicts.
     @ViewBuilder
     private func renewingSoonRow(_ sub: Subscription) -> some View {
         VStack(spacing: 0) {
-            SubscriptionRow(subscription: sub, isGrouped: true)
+            SubscriptionRow(subscription: sub, isGrouped: true, priceChange: priceChanges[sub.id])
                 .contentShape(Rectangle())
                 .onTapGesture { selectedSubscription = sub }
 
@@ -109,15 +148,20 @@ struct ContentView: View {
                 Divider()
                     .padding(.horizontal, 16)
                 Button("Mark as Renewed") {
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    withAnimation(.easeInOut(duration: 0.25)) {
+                    UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
                         _ = renewingIDs.insert(sub.id)
                     }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.1) {
+
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         UINotificationFeedbackGenerator().notificationOccurred(.success)
-                        withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                            markAsRenewed(sub)
+                    }
+
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                        withAnimation(.spring(response: 0.7, dampingFraction: 0.85)) {
                             _ = renewingIDs.remove(sub.id)
+                            markAsRenewed(sub)
                         }
                     }
                 }
@@ -138,9 +182,15 @@ struct ContentView: View {
                     ConfettiView()
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 14))
-                .transition(.opacity)
+                .transition(
+                    .asymmetric(
+                        insertion: .opacity.animation(.easeIn(duration: 0.3)),
+                        removal: .opacity.animation(.easeOut(duration: 0.4))
+                    )
+                )
             }
         }
+        .scaleEffect(renewingIDs.contains(sub.id) ? 0.98 : 1.0)
         .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
         .listRowBackground(Color.clear)
         .listRowSeparator(.hidden)
@@ -151,13 +201,12 @@ struct ContentView: View {
         }
     }
 
-    // Grouped row — List section provides the shared card container and dividers.
     @ViewBuilder
     private func upcomingRow(_ sub: Subscription) -> some View {
         Button {
             selectedSubscription = sub
         } label: {
-            SubscriptionRow(subscription: sub, isGrouped: true)
+            SubscriptionRow(subscription: sub, isGrouped: true, priceChange: priceChanges[sub.id])
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -197,5 +246,5 @@ private struct CardPressButtonStyle: ButtonStyle {
 
 #Preview {
     ContentView()
-        .modelContainer(for: Subscription.self, inMemory: true)
+        .modelContainer(for: [Subscription.self, PriceRecord.self], inMemory: true)
 }

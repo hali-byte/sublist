@@ -27,14 +27,14 @@ final class PricingService {
 
     private var cache: [String: [SubscriptionPlan]] = [:]
 
-    private let anthropicEndpoint = URL(string: "https://api.anthropic.com/v1/messages")!
+    private let proxyEndpoint = URL(string: "https://sublist-api.vercel.app/api/pricing")!
 
-    private let apiKey: String = {
-        guard let key = Bundle.main.object(forInfoDictionaryKey: "ANTHROPIC_API_KEY") as? String,
-              !key.isEmpty, key != "PASTE_YOUR_KEY_HERE" else {
-            fatalError("ANTHROPIC_API_KEY is missing or unset in Info.plist / Secrets.xcconfig")
+    private let bearerToken: String = {
+        guard let token = Bundle.main.object(forInfoDictionaryKey: "SUBLIST_API_TOKEN") as? String,
+              !token.isEmpty, token != "PASTE_YOUR_TOKEN_HERE" else {
+            fatalError("SUBLIST_API_TOKEN is missing or unset in Info.plist / Secrets.xcconfig")
         }
-        return key
+        return token
     }()
 
     private init() {}
@@ -48,37 +48,55 @@ final class PricingService {
 
         let start = Date()
 
-        do {
-            let html = try await fetchHTMLWithRetry(from: provider.pricingURL(for: countryCode), provider: provider)
-            let plans = try await extractPlans(from: html, provider: provider, countryCode: countryCode)
-            let ms = Int(Date().timeIntervalSince(start) * 1000)
+        let urlsToTry = [provider.pricingURL(for: countryCode)] + provider.fallbackURLs
+        var lastError: Error = PricingError.fetchFailed
 
-            PricingAnalytics.record(
-                service: provider.serviceName,
-                country: countryCode,
-                outcome: plans.isEmpty ? .empty : .success(planCount: plans.count),
-                durationMs: ms
-            )
+        for url in urlsToTry {
+            do {
+                let html = try await fetchHTMLWithRetry(from: url, provider: provider)
+                let plans = try await extractPlansViaProxy(
+                    html: html,
+                    provider: provider,
+                    countryCode: countryCode
+                )
+                let ms = Int(Date().timeIntervalSince(start) * 1000)
 
-            cache[cacheKey] = plans
-            return plans
-        } catch let error as PricingError {
-            let ms = Int(Date().timeIntervalSince(start) * 1000)
-            let step: String
-            switch error {
+                if !plans.isEmpty {
+                    PricingAnalytics.record(
+                        service: provider.serviceName,
+                        country: countryCode,
+                        outcome: .success(planCount: plans.count),
+                        durationMs: ms
+                    )
+                    cache[cacheKey] = plans
+                    return plans
+                }
+            } catch {
+                lastError = error
+                Logger.pricing.info("[\(provider.serviceName)] URL \(url) failed, trying next fallback…")
+                continue
+            }
+        }
+
+        let ms = Int(Date().timeIntervalSince(start) * 1000)
+        let step: String
+        if let pricingError = lastError as? PricingError {
+            switch pricingError {
             case .fetchFailed:        step = "htmlFetch"
-            case .parsingFailed:      step = "claudeAPI"
+            case .parsingFailed:      step = "proxyAPI"
             case .geolocationFailed:  step = "geolocation"
             case .unsupportedCountry: step = "unsupportedCountry"
             }
-            PricingAnalytics.record(
-                service: provider.serviceName,
-                country: countryCode,
-                outcome: .failure(step: step, error: error.localizedDescription),
-                durationMs: ms
-            )
-            throw error
+        } else {
+            step = "unknown"
         }
+        PricingAnalytics.record(
+            service: provider.serviceName,
+            country: countryCode,
+            outcome: .failure(step: step, error: lastError.localizedDescription),
+            durationMs: ms
+        )
+        throw lastError
     }
 
     func clearCache() {
@@ -92,7 +110,7 @@ final class PricingService {
             return try await fetchHTML(from: url)
         } catch {
             Logger.pricing.warning("[\(provider.serviceName)] First fetch failed, retrying once…")
-            try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+            try await Task.sleep(nanoseconds: 1_000_000_000)
             return try await fetchHTML(from: url)
         }
     }
@@ -117,127 +135,83 @@ final class PricingService {
         return String(text.prefix(50_000))
     }
 
-    // MARK: - Claude extraction
+    // MARK: - Proxy extraction
 
-    private func extractPlans(
-        from html: String,
+    private func extractPlansViaProxy(
+        html: String,
         provider: any SubscriptionPricingProvider,
         countryCode: String
     ) async throws -> [SubscriptionPlan] {
 
-        let systemPrompt = """
-        You are a pricing data extractor. Given HTML from a subscription service pricing page, \
-        extract all available paid plans as a JSON array. Each element must have exactly these keys:
-        - "name": string (plan name, e.g. "Individual", "Duo", "Family")
-        - "price": number (the numeric price, no currency symbol)
-        - "currency": string (ISO 4217 code, e.g. "USD", "EUR", "SEK")
-        - "billingPeriod": string (exactly "month" or "year")
-        Include only purchasable plans. Do not include free tiers. \
-        Return ONLY valid JSON — no markdown fences, no explanation. \
-        If no pricing is found, return an empty array [].
-        \(provider.extractionHint)
-        """
-
-        let userMessage = """
-        Extract all subscription plans from this pricing page HTML for country code \(countryCode):
-
-        \(html)
-        """
-
-        let requestBody: [String: Any] = [
-            "model": "claude-haiku-4-5-20251001",
-            "max_tokens": 500,
-            "system": systemPrompt,
-            "messages": [
-                ["role": "user", "content": userMessage]
-            ]
+        let payload: [String: String] = [
+            "html": html,
+            "serviceName": provider.serviceName,
+            "countryCode": countryCode,
+            "extractionHint": provider.extractionHint,
         ]
 
-        var request = URLRequest(url: anthropicEndpoint)
+        var request = URLRequest(url: proxyEndpoint)
         request.httpMethod = "POST"
+        request.timeoutInterval = 30
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
-        request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
-        request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
+        request.setValue("Bearer \(bearerToken)", forHTTPHeaderField: "Authorization")
+        request.httpBody = try JSONSerialization.data(withJSONObject: payload)
 
-        return try await callClaudeWithRetry(request: request, provider: provider)
+        return try await callProxyWithRetry(request: request, provider: provider)
     }
 
-    // MARK: - Claude API call with retry
+    // MARK: - Proxy call with retry
 
-    private func callClaudeWithRetry(request: URLRequest, provider: any SubscriptionPricingProvider) async throws -> [SubscriptionPlan] {
+    private func callProxyWithRetry(request: URLRequest, provider: any SubscriptionPricingProvider) async throws -> [SubscriptionPlan] {
         let (data, response) = try await URLSession.shared.data(for: request)
         let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
 
         if statusCode == 200 {
-            return try parseClaudeResponse(data)
+            return try parseProxyResponse(data)
         }
 
         let body = String(data: data, encoding: .utf8) ?? ""
-        Logger.pricing.warning("[\(provider.serviceName)] Claude returned \(statusCode), retrying once. Body: \(body.prefix(200))")
+        Logger.pricing.warning("[\(provider.serviceName)] Proxy returned \(statusCode), retrying once. Body: \(body.prefix(200))")
 
-        // Retry once on transient errors (429 rate-limit, 529 overloaded, 5xx)
-        guard statusCode == 429 || statusCode == 529 || statusCode >= 500 else {
-            Logger.pricing.error("[\(provider.serviceName)] Claude returned \(statusCode) — not retrying. Body: \(body.prefix(500))")
+        guard statusCode == 429 || statusCode == 502 || statusCode >= 500 else {
+            Logger.pricing.error("[\(provider.serviceName)] Proxy returned \(statusCode) — not retrying. Body: \(body.prefix(500))")
             throw PricingError.parsingFailed
         }
 
-        let delay: UInt64 = statusCode == 429 ? 3_000_000_000 : 1_000_000_000 // 3s for rate-limit, 1s for overload
+        let delay: UInt64 = statusCode == 429 ? 3_000_000_000 : 1_000_000_000
         try await Task.sleep(nanoseconds: delay)
 
         let (retryData, retryResponse) = try await URLSession.shared.data(for: request)
         let retryStatus = (retryResponse as? HTTPURLResponse)?.statusCode ?? 0
 
         guard retryStatus == 200 else {
-            Logger.pricing.error("[\(provider.serviceName)] Claude retry also failed with \(retryStatus)")
+            Logger.pricing.error("[\(provider.serviceName)] Proxy retry also failed with \(retryStatus)")
             throw PricingError.parsingFailed
         }
 
-        return try parseClaudeResponse(retryData)
+        return try parseProxyResponse(retryData)
     }
 
     // MARK: - Response parsing
 
-    private func parseClaudeResponse(_ data: Data) throws -> [SubscriptionPlan] {
-        struct ClaudeResponse: Decodable {
-            struct ContentBlock: Decodable {
-                let type: String
-                let text: String?
+    private func parseProxyResponse(_ data: Data) throws -> [SubscriptionPlan] {
+        struct ProxyResponse: Decodable {
+            struct Plan: Decodable {
+                let name: String
+                let price: Decimal
+                let currency: String
+                let billingPeriod: String
             }
-            let content: [ContentBlock]
+            let plans: [Plan]
         }
 
-        struct RawPlan: Decodable {
-            let name: String
-            let price: Decimal
-            let currency: String
-            let billingPeriod: String
-        }
-
-        let claudeResp = try JSONDecoder().decode(ClaudeResponse.self, from: data)
-        guard let textBlock = claudeResp.content.first(where: { $0.type == "text" }),
-              let jsonText = textBlock.text else {
-            throw PricingError.parsingFailed
-        }
-
-        // Strip accidental markdown fences
-        let cleaned = jsonText
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .replacingOccurrences(of: "```json", with: "")
-            .replacingOccurrences(of: "```", with: "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-
-        guard let cleanedData = cleaned.data(using: .utf8) else {
-            throw PricingError.parsingFailed
-        }
-
-        let rawPlans = try JSONDecoder().decode([RawPlan].self, from: cleanedData)
-        return rawPlans.map { raw in
+        let response = try JSONDecoder().decode(ProxyResponse.self, from: data)
+        return response.plans.map { plan in
             SubscriptionPlan(
-                name: raw.name,
-                price: raw.price,
-                currency: raw.currency.uppercased(),
-                billingPeriod: raw.billingPeriod
+                name: plan.name,
+                price: plan.price,
+                currency: plan.currency.uppercased(),
+                billingPeriod: plan.billingPeriod
             )
         }
     }
