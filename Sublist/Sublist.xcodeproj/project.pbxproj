@@ -21,6 +21,13 @@
 			remoteGlobalIDString = 9A1EA56D2F5322C40091B2F0;
 			remoteInfo = SublistWidgetExtension;
 		};
+		AABBCCDDEEFF0011223344B0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9AC3B03F2F5227E600390BF7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9AC3B0462F5227E700390BF7;
+			remoteInfo = Sublist;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -44,6 +51,7 @@
 		9A1EA5892F5327310091B2F0 /* SublistWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SublistWidgetExtension.entitlements; sourceTree = "<group>"; };
 		9A77F8622F823C98001F06F1 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		9AC3B0472F5227E700390BF7 /* Sublist.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sublist.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AABBCCDDEEFF001122334420 /* SublistTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SublistTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -80,6 +88,11 @@
 			path = Sublist;
 			sourceTree = "<group>";
 		};
+		AABBCCDDEEFF001122334430 /* SublistTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = SublistTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -93,6 +106,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		9AC3B0442F5227E700390BF7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AABBCCDDEEFF001122334450 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -120,6 +140,7 @@
 				9A1EA56F2F5322C40091B2F0 /* Frameworks */,
 				9AC3B0482F5227E700390BF7 /* Products */,
 				9A77F8622F823C98001F06F1 /* Secrets.xcconfig */,
+				AABBCCDDEEFF001122334430 /* SublistTests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -128,6 +149,7 @@
 			children = (
 				9AC3B0472F5227E700390BF7 /* Sublist.app */,
 				9A1EA56E2F5322C40091B2F0 /* SublistWidgetExtension.appex */,
+				AABBCCDDEEFF001122334420 /* SublistTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -182,6 +204,29 @@
 			productReference = 9AC3B0472F5227E700390BF7 /* Sublist.app */;
 			productType = "com.apple.product-type.application";
 		};
+		AABBCCDDEEFF001122334410 /* SublistTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AABBCCDDEEFF001122334470 /* Build configuration list for PBXNativeTarget "SublistTests" */;
+			buildPhases = (
+				AABBCCDDEEFF001122334440 /* Sources */,
+				AABBCCDDEEFF001122334450 /* Frameworks */,
+				AABBCCDDEEFF001122334460 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AABBCCDDEEFF0011223344A0 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				AABBCCDDEEFF001122334430 /* SublistTests */,
+			);
+			name = SublistTests;
+			packageProductDependencies = (
+			);
+			productName = SublistTests;
+			productReference = AABBCCDDEEFF001122334420 /* SublistTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -197,6 +242,10 @@
 					};
 					9AC3B0462F5227E700390BF7 = {
 						CreatedOnToolsVersion = 26.3;
+					};
+					AABBCCDDEEFF001122334410 = {
+						CreatedOnToolsVersion = 26.3;
+						TestTargetID = 9AC3B0462F5227E700390BF7;
 					};
 				};
 			};
@@ -223,6 +272,7 @@
 			targets = (
 				9AC3B0462F5227E700390BF7 /* Sublist */,
 				9A1EA56D2F5322C40091B2F0 /* SublistWidgetExtension */,
+				AABBCCDDEEFF001122334410 /* SublistTests */,
 			);
 		};
 /* End PBXProject section */
@@ -240,6 +290,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				9A77F8632F823C98001F06F1 /* Secrets.xcconfig in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AABBCCDDEEFF001122334460 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -282,6 +339,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AABBCCDDEEFF001122334440 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -289,6 +353,11 @@
 			isa = PBXTargetDependency;
 			target = 9A1EA56D2F5322C40091B2F0 /* SublistWidgetExtension */;
 			targetProxy = 9A1EA5802F5322C50091B2F0 /* PBXContainerItemProxy */;
+		};
+		AABBCCDDEEFF0011223344A0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9AC3B0462F5227E700390BF7 /* Sublist */;
+			targetProxy = AABBCCDDEEFF0011223344B0 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -558,6 +627,48 @@
 			};
 			name = Release;
 		};
+		AABBCCDDEEFF001122334480 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RN7WLWN599;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				MARKETING_VERSION = 2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hugohodinka.SublistTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Sublist.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Sublist";
+			};
+			name = Debug;
+		};
+		AABBCCDDEEFF001122334490 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RN7WLWN599;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				MARKETING_VERSION = 2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hugohodinka.SublistTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Sublist.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Sublist";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -584,6 +695,15 @@
 			buildConfigurations = (
 				9AC3B0552F5227E800390BF7 /* Debug */,
 				9AC3B0562F5227E800390BF7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AABBCCDDEEFF001122334470 /* Build configuration list for PBXNativeTarget "SublistTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AABBCCDDEEFF001122334480 /* Debug */,
+				AABBCCDDEEFF001122334490 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

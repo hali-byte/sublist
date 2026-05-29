@@ -205,7 +205,14 @@ final class PricingService {
             let plans: [Plan]
         }
 
-        let response = try JSONDecoder().decode(ProxyResponse.self, from: data)
+        let response: ProxyResponse
+        do {
+            response = try JSONDecoder().decode(ProxyResponse.self, from: data)
+        } catch {
+            let body = String(data: data, encoding: .utf8)?.prefix(300) ?? ""
+            Logger.pricing.error("Proxy response decode failed: \(error.localizedDescription). Body: \(body)")
+            throw PricingError.parsingFailed
+        }
         return response.plans.map { plan in
             SubscriptionPlan(
                 name: plan.name,

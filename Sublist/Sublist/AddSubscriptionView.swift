@@ -152,11 +152,18 @@ struct AddSubscriptionView: View {
                         Text("KRW — South Korean Won").tag("KRW")
                         Text("INR — Indian Rupee").tag("INR")
                     }
-                    HStack(spacing: 4) {
-                        Text(currencySymbol(for: currency))
-                            .foregroundStyle(.secondary)
-                        TextField("Amount", text: $amountText)
-                            .keyboardType(.decimalPad)
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 4) {
+                            Text(CurrencyFormatting.symbol(for: currency))
+                                .foregroundStyle(.secondary)
+                            TextField("Amount", text: $amountText)
+                                .keyboardType(.decimalPad)
+                        }
+                        if !amountText.isEmpty && AmountParser.parse(amountText) == nil {
+                            Text("Enter an amount between 0 and 1,000,000.")
+                                .font(.caption)
+                                .foregroundStyle(.red)
+                        }
                     }
                     Picker("Billing Cycle", selection: $billingCycle) {
                         ForEach(BillingCycle.allCases, id: \.self) { cycle in
@@ -190,7 +197,7 @@ struct AddSubscriptionView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Save") { saveSubscription() }
-                        .disabled(name.isEmpty)
+                        .disabled(!isFormValid)
                         .fontWeight(.semibold)
                 }
             }
@@ -279,10 +286,9 @@ struct AddSubscriptionView: View {
     }
 
     private func billingLabel(for plan: SubscriptionPlan) -> String {
-        let symbol = currencySymbol(for: plan.currency)
         let price  = NSDecimalNumber(decimal: plan.price).doubleValue
         let period = plan.billingPeriod.lowercased().hasPrefix("year") ? "year" : "month"
-        return "\(symbol)\(String(format: "%.2f", price)) / \(period)"
+        return "\(CurrencyFormatting.format(price, code: plan.currency)) / \(period)"
     }
 
     // MARK: - Helpers
@@ -353,13 +359,15 @@ struct AddSubscriptionView: View {
     }
 
     private func mapCurrency(_ code: String) -> String {
-        let supported = ["USD","EUR","GBP","AUD","CAD","CNY","SGD","SEK","PLN",
-                         "DKK","NOK","CHF","BRL","JPY","KRW","INR"]
-        return supported.contains(code.uppercased()) ? code.uppercased() : currency
+        CurrencyFormatting.supportedCodes.contains(code.uppercased()) ? code.uppercased() : currency
+    }
+
+    private var isFormValid: Bool {
+        !name.trimmingCharacters(in: .whitespaces).isEmpty && AmountParser.isValid(amountText)
     }
 
     private func saveSubscription() {
-        let amount = Double(amountText.replacingOccurrences(of: ",", with: ".")) ?? 0.0
+        guard let amount = AmountParser.parse(amountText) else { return }
         let sub = Subscription(
             name: name,
             amount: amount,
@@ -384,14 +392,3 @@ struct AddSubscriptionView: View {
     }
 }
 
-// MARK: - Currency symbol
-
-private func currencySymbol(for code: String) -> String {
-    let symbols: [String: String] = [
-        "USD": "$",  "EUR": "€",  "GBP": "£",  "AUD": "A$",
-        "CAD": "C$", "CNY": "¥",  "SGD": "S$", "SEK": "kr",
-        "PLN": "zł", "DKK": "kr", "NOK": "kr", "CHF": "Fr",
-        "BRL": "R$", "JPY": "¥",  "KRW": "₩",  "INR": "₹",
-    ]
-    return symbols[code] ?? code
-}

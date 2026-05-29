@@ -147,9 +147,9 @@ struct SubscriptionRow: View {
                      category: .music, emoji: "🎵"),
     ]
     VStack(spacing: 10) {
-        SubscriptionRow(subscription: subs[0])
-        SubscriptionRow(subscription: subs[1])
-        SubscriptionRow(subscription: subs[2], isGrouped: true)
+        ForEach(Array(subs.enumerated()), id: \.offset) { index, sub in
+            SubscriptionRow(subscription: sub, isGrouped: index == subs.count - 1)
+        }
     }
     .padding()
     .background(Color(.systemGroupedBackground))

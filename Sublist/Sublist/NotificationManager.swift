@@ -1,5 +1,6 @@
 import UserNotifications
 import Observation
+import OSLog
 
 @Observable
 final class NotificationManager {
@@ -40,7 +41,7 @@ final class NotificationManager {
                 .requestAuthorization(options: [.alert, .badge, .sound])
             authorizationStatus = granted ? .authorized : .denied
         } catch {
-            print("Notification permission error: \(error)")
+            Logger.notifications.error("Notification permission request failed: \(error.localizedDescription)")
         }
     }
 
@@ -48,16 +49,61 @@ final class NotificationManager {
         authorizationStatus == .authorized || authorizationStatus == .provisional || authorizationStatus == .ephemeral
     }
 
+    /// iOS allows at most 64 pending notifications per app. We cap renewal
+    /// reminders below that to leave headroom for immediate price-change alerts.
+    private static let reminderLimit = 60
+
+    /// Computes when the day-before reminder should fire for a renewal.
+    ///
+    /// Normally the day before the renewal at 09:00 local time. If that moment
+    /// has already passed (the subscription was added late, or renews very soon)
+    /// but the renewal is still upcoming, it falls back to a near-term reminder
+    /// so the user is still warned instead of getting nothing. Returns `nil`
+    /// only when the renewal itself is not in the future.
+    ///
+    /// Pure and deterministic (inject `now`/`calendar`) so it can be unit-tested.
+    static func reminderFireDate(
+        forRenewal renewalDate: Date,
+        now: Date = Date(),
+        calendar: Calendar = .current
+    ) -> Date? {
+        guard renewalDate > now else { return nil }
+
+        let dayBefore = calendar.date(byAdding: .day, value: -1, to: renewalDate) ?? renewalDate
+        var components = calendar.dateComponents([.year, .month, .day], from: dayBefore)
+        components.hour = 9
+        components.minute = 0
+        let nineAM = calendar.date(from: components) ?? dayBefore
+
+        if nineAM > now { return nineAM }
+
+        // The day-before 09:00 slot has passed; warn soon, as long as the
+        // renewal hasn't already arrived in the meantime.
+        let soon = now.addingTimeInterval(60)
+        return soon < renewalDate ? soon : nil
+    }
+
     func scheduleAll(for subscriptions: [Subscription]) {
-        guard canSchedule else { return }
+        guard canSchedule else {
+            Logger.notifications.info("Skipping reminder scheduling: not authorised (status \(self.authorizationStatus.rawValue)).")
+            return
+        }
         UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
-        for sub in subscriptions { schedule(for: sub) }
+
+        let upcoming = subscriptions
+            .filter { Self.reminderFireDate(forRenewal: $0.nextRenewalDate) != nil }
+            .sorted { $0.nextRenewalDate < $1.nextRenewalDate }
+
+        if upcoming.count > Self.reminderLimit {
+            Logger.notifications.warning("\(upcoming.count) renewals need reminders but iOS caps pending notifications; scheduling the soonest \(Self.reminderLimit).")
+        }
+        for sub in upcoming.prefix(Self.reminderLimit) { schedule(for: sub) }
+        Logger.notifications.info("Scheduled \(min(upcoming.count, Self.reminderLimit)) renewal reminders.")
     }
 
     func schedule(for subscription: Subscription) {
         guard canSchedule else { return }
-        guard let fireDate = Calendar.current.date(byAdding: .day, value: -1, to: subscription.nextRenewalDate),
-              fireDate > Date() else { return }
+        guard let fireDate = Self.reminderFireDate(forRenewal: subscription.nextRenewalDate) else { return }
 
         let content = UNMutableNotificationContent()
         content.title = String(localized: "Subscription Renewing Tomorrow",
@@ -71,11 +117,10 @@ final class NotificationManager {
         content.sound = .default
         content.categoryIdentifier = Self.renewalCategoryID
 
-        var components = Calendar.current.dateComponents([.year, .month, .day], from: fireDate)
-        components.hour = 9
-        components.minute = 0
-
-        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+        // Interval trigger from the resolved fire date: avoids the past-date
+        // pitfall of a calendar trigger and fires reliably for imminent renewals.
+        let interval = max(1, fireDate.timeIntervalSinceNow)
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: interval, repeats: false)
         let request = UNNotificationRequest(identifier: subscription.id.uuidString, content: content, trigger: trigger)
         UNUserNotificationCenter.current().add(request, withCompletionHandler: nil)
     }

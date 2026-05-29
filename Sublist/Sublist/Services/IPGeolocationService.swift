@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 
 // MARK: - Result type
 
@@ -33,8 +34,21 @@ final class IPGeolocationService {
             let country_name: String
         }
 
-        let geo = try JSONDecoder().decode(GeoResponse.self, from: data)
-        let result = GeolocationResult(code: geo.country_code, name: geo.country_name)
+        let geo: GeoResponse
+        do {
+            geo = try JSONDecoder().decode(GeoResponse.self, from: data)
+        } catch {
+            Logger.geo.error("Geolocation decode failed: \(error.localizedDescription)")
+            throw PricingError.geolocationFailed
+        }
+
+        let code = geo.country_code.uppercased()
+        guard CountryCode.isValid(code) else {
+            Logger.geo.error("Invalid country_code from geolocation API: \(geo.country_code)")
+            throw PricingError.geolocationFailed
+        }
+
+        let result = GeolocationResult(code: code, name: geo.country_name)
         cached = result
         return result
     }

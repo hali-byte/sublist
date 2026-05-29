@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import OSLog
 
 struct ContentView: View {
     @Query(sort: \Subscription.nextRenewalDate) private var subscriptions: [Subscription]
@@ -128,7 +129,9 @@ struct ContentView: View {
                         detectedCountryCode = geo.code
                         detectedCountryName = geo.name
                         showCountryPrompt = true
-                    } catch {}
+                    } catch {
+                        Logger.geo.info("Country auto-detection unavailable: \(error.localizedDescription). User can set it in Settings.")
+                    }
                 }
             }
             .onChange(of: subscriptions) { _, _ in
