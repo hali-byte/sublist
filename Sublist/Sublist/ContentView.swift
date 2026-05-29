@@ -6,6 +6,7 @@ struct ContentView: View {
     @Query(sort: \Subscription.nextRenewalDate) private var subscriptions: [Subscription]
     @Query private var priceRecords: [PriceRecord]
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.requestReview) private var requestReview
     @AppStorage(AppConstants.currencyKey) private var currency: String = "USD"
     @AppStorage(AppConstants.countryCodeKey) private var countryCode: String = ""
     @AppStorage(AppConstants.showPriceChangeTags) private var showPriceChangeTags: Bool = true
@@ -130,6 +131,7 @@ struct ContentView: View {
                 Text("We detected you're in \(detectedCountryName). This is used to fetch accurate subscription pricing for your region.")
             }
             .task {
+                ReviewPromptManager.shared.registerLaunch()
                 await NotificationManager.shared.refreshStatus()
                 NotificationManager.shared.scheduleAll(for: subscriptions)
                 updateWidgetSnapshot(from: subscriptions, currency: currency)
@@ -327,6 +329,7 @@ struct ContentView: View {
                 _ = renewingIDs.remove(sub.id)
             } completion: {
                 markAsRenewed(sub)
+                ReviewPromptManager.shared.requestReviewIfEligible(requestReview)
             }
         }
     }
@@ -342,6 +345,7 @@ struct ContentView: View {
     private func markAsRenewed(_ subscription: Subscription) {
         subscription.markAsRenewed()
         NotificationManager.shared.schedule(for: subscription)
+        ReviewPromptManager.shared.recordPositiveAction()
         updateWidgetSnapshot(from: subscriptions, currency: currency)
     }
 }

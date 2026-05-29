@@ -118,6 +118,13 @@ struct SettingsView: View {
                 Section("About") {
                     LabeledContent("Version", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")
                     LabeledContent("Build", value: Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1")
+                    Button {
+                        if let url = URL(string: "https://apps.apple.com/app/id6760260991?action=write-review") {
+                            openURL(url)
+                        }
+                    } label: {
+                        Label("Rate Sublist", systemImage: "star")
+                    }
                 }
             }
             .navigationTitle("Settings")

@@ -387,6 +387,7 @@ struct AddSubscriptionView: View {
         }
 
         NotificationManager.shared.schedule(for: sub)
+        ReviewPromptManager.shared.recordPositiveAction()
         UINotificationFeedbackGenerator().notificationOccurred(.success)
         dismiss()
     }

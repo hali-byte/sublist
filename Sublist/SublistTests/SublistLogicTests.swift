@@ -125,6 +125,69 @@ struct CountryCodeTests {
     }
 }
 
+// MARK: - ReviewPromptManager gating
+
+@MainActor
+@Suite("Review prompt gating")
+struct ReviewPromptGatingTests {
+    private func makeManager() -> (ReviewPromptManager, UserDefaults) {
+        let suite = "ReviewTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defaults.removePersistentDomain(forName: suite)
+        return (ReviewPromptManager(defaults: defaults, minPositiveActions: 3, minDaysSinceInstall: 5), defaults)
+    }
+
+    private func date(_ y: Int, _ m: Int, _ d: Int) -> Date {
+        var c = DateComponents(); c.year = y; c.month = m; c.day = d
+        return Calendar.current.date(from: c)!
+    }
+
+    @Test("below action threshold is not eligible") func belowActions() {
+        let (m, _) = makeManager()
+        m.registerLaunch(now: date(2026, 6, 1))
+        m.recordPositiveAction()
+        #expect(m.shouldRequestReview(now: date(2026, 6, 20)) == false)
+    }
+
+    @Test("below day threshold is not eligible") func belowDays() {
+        let (m, _) = makeManager()
+        m.registerLaunch(now: date(2026, 6, 1))
+        for _ in 0..<5 { m.recordPositiveAction() }
+        #expect(m.shouldRequestReview(now: date(2026, 6, 2)) == false)
+    }
+
+    @Test("at threshold is eligible") func atThreshold() {
+        let (m, _) = makeManager()
+        m.registerLaunch(now: date(2026, 6, 1))
+        for _ in 0..<3 { m.recordPositiveAction() }
+        #expect(m.shouldRequestReview(now: date(2026, 6, 10)) == true)
+    }
+
+    @Test("already prompted this version is not eligible") func alreadyPrompted() {
+        let (m, defaults) = makeManager()
+        m.registerLaunch(now: date(2026, 6, 1))
+        for _ in 0..<3 { m.recordPositiveAction() }
+        defaults.set(AppConstants.appVersion, forKey: AppConstants.reviewLastPromptedVersion)
+        #expect(m.shouldRequestReview(now: date(2026, 6, 10)) == false)
+    }
+
+    @Test("eligible again after a version change") func newVersion() {
+        let (m, defaults) = makeManager()
+        m.registerLaunch(now: date(2026, 6, 1))
+        for _ in 0..<3 { m.recordPositiveAction() }
+        defaults.set("0.0-old", forKey: AppConstants.reviewLastPromptedVersion)
+        #expect(m.shouldRequestReview(now: date(2026, 6, 10)) == true)
+    }
+
+    @Test("registerLaunch sets first-launch date only once") func firstLaunchOnce() {
+        let (m, defaults) = makeManager()
+        m.registerLaunch(now: date(2026, 6, 1))
+        let first = defaults.double(forKey: AppConstants.reviewFirstLaunchDate)
+        m.registerLaunch(now: date(2026, 6, 5))
+        #expect(defaults.double(forKey: AppConstants.reviewFirstLaunchDate) == first)
+    }
+}
+
 // MARK: - NotificationManager.reminderFireDate
 
 @Suite("Reminder fire date")

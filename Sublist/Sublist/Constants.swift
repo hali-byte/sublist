@@ -9,4 +9,17 @@ enum AppConstants {
     static let lastBackgroundCheckKey = "lastBackgroundCheck"
     static let backgroundPriceCheckEnabled = "backgroundPriceCheckEnabled"
     static let showPriceChangeTags = "showPriceChangeTags"
+
+    // Onboarding
+    static let hasCompletedOnboarding = "hasCompletedOnboarding"
+
+    // Review prompt gating
+    static let reviewFirstLaunchDate = "reviewFirstLaunchDate"
+    static let reviewAppOpenCount = "reviewAppOpenCount"
+    static let reviewPositiveActionCount = "reviewPositiveActionCount"
+    static let reviewLastPromptedVersion = "reviewLastPromptedVersion"
+
+    static var appVersion: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
+    }
 }
