@@ -136,13 +136,13 @@ struct OnboardingView: View {
 
             if !selected.isEmpty {
                 VStack(spacing: 4) {
-                    Text(monthlyTotal, format: .currency(code: currency))
+                    Text("≈ \(monthlyTotal.formatted(.currency(code: currency)))")
                         .font(.system(size: 52, weight: .bold).monospacedDigit())
                         .contentTransition(.numericText())
                     Text("per month")
                         .font(.headline)
                         .foregroundStyle(.secondary)
-                    Text("That's \((monthlyTotal * 12).formatted(.currency(code: currency))) a year")
+                    Text("That's \("≈ " + (monthlyTotal * 12).formatted(.currency(code: currency))) a year")
                         .font(.subheadline.monospacedDigit())
                         .foregroundStyle(.secondary)
                         .padding(.top, 4)
