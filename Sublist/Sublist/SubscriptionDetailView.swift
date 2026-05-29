@@ -1,5 +1,5 @@
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct SubscriptionDetailView: View {
     @Bindable var subscription: Subscription
@@ -109,7 +109,6 @@ struct SubscriptionDetailView: View {
         }
     }
 
-    @ViewBuilder
     private var planTiersSection: some View {
         Section {
             if isRefreshingPrices {
@@ -174,7 +173,6 @@ struct SubscriptionDetailView: View {
         }
     }
 
-    @ViewBuilder
     private func tierRow(name: String, price: Double, currency: String, billingPeriod: String) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
@@ -222,7 +220,8 @@ struct SubscriptionDetailView: View {
         }
 
         guard let cheapest = matching.min(by: { $0.price < $1.price }),
-              cheapest.price < subscription.amount - 0.01 else {
+              cheapest.price < subscription.amount - 0.01
+        else {
             return nil
         }
 

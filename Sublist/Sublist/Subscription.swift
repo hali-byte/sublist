@@ -12,7 +12,7 @@ class Subscription {
     var emoji: String
     /// When set and in the future, this subscription is on a free trial that
     /// converts to a paid charge of `amount` on this date. nil = not a trial.
-    var trialEndDate: Date? = nil
+    var trialEndDate: Date?
 
     @Relationship(deleteRule: .cascade, inverse: \PriceRecord.subscription)
     var priceRecords: [PriceRecord] = []
@@ -72,46 +72,46 @@ class Subscription {
 
 enum BillingCycle: String, Codable, CaseIterable {
     case monthly = "Monthly"
-    case yearly  = "Yearly"
+    case yearly = "Yearly"
 
     var localizedName: String {
         switch self {
         case .monthly: String(localized: "Monthly", comment: "Monthly billing cycle")
-        case .yearly:  String(localized: "Yearly",  comment: "Yearly billing cycle")
+        case .yearly: String(localized: "Yearly", comment: "Yearly billing cycle")
         }
     }
 }
 
 enum Category: String, Codable, CaseIterable {
     case entertainment = "Entertainment"
-    case music         = "Music"
-    case gaming        = "Gaming"
-    case productivity  = "Productivity"
-    case software      = "Software"
-    case news          = "News & Reading"
-    case fitness       = "Fitness"
-    case health        = "Health & Wellness"
-    case education     = "Education"
-    case finance       = "Finance"
-    case cloud         = "Cloud Storage"
-    case security      = "Security & VPN"
-    case other         = "Other"
+    case music = "Music"
+    case gaming = "Gaming"
+    case productivity = "Productivity"
+    case software = "Software"
+    case news = "News & Reading"
+    case fitness = "Fitness"
+    case health = "Health & Wellness"
+    case education = "Education"
+    case finance = "Finance"
+    case cloud = "Cloud Storage"
+    case security = "Security & VPN"
+    case other = "Other"
 
     var localizedName: String {
         switch self {
-        case .entertainment: String(localized: "Entertainment",     comment: "Subscription category")
-        case .music:         String(localized: "Music",             comment: "Subscription category")
-        case .gaming:        String(localized: "Gaming",            comment: "Subscription category")
-        case .productivity:  String(localized: "Productivity",      comment: "Subscription category")
-        case .software:      String(localized: "Software",          comment: "Subscription category")
-        case .news:          String(localized: "News & Reading",    comment: "Subscription category")
-        case .fitness:       String(localized: "Fitness",           comment: "Subscription category")
-        case .health:        String(localized: "Health & Wellness", comment: "Subscription category")
-        case .education:     String(localized: "Education",         comment: "Subscription category")
-        case .finance:       String(localized: "Finance",           comment: "Subscription category")
-        case .cloud:         String(localized: "Cloud Storage",     comment: "Subscription category")
-        case .security:      String(localized: "Security & VPN",    comment: "Subscription category")
-        case .other:         String(localized: "Other",             comment: "Subscription category")
+        case .entertainment: String(localized: "Entertainment", comment: "Subscription category")
+        case .music: String(localized: "Music", comment: "Subscription category")
+        case .gaming: String(localized: "Gaming", comment: "Subscription category")
+        case .productivity: String(localized: "Productivity", comment: "Subscription category")
+        case .software: String(localized: "Software", comment: "Subscription category")
+        case .news: String(localized: "News & Reading", comment: "Subscription category")
+        case .fitness: String(localized: "Fitness", comment: "Subscription category")
+        case .health: String(localized: "Health & Wellness", comment: "Subscription category")
+        case .education: String(localized: "Education", comment: "Subscription category")
+        case .finance: String(localized: "Finance", comment: "Subscription category")
+        case .cloud: String(localized: "Cloud Storage", comment: "Subscription category")
+        case .security: String(localized: "Security & VPN", comment: "Subscription category")
+        case .other: String(localized: "Other", comment: "Subscription category")
         }
     }
 }

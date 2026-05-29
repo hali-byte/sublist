@@ -4,8 +4,8 @@ import OSLog
 // MARK: - Result type
 
 struct GeolocationResult {
-    let code: String  // ISO 3166-1 alpha-2, e.g. "ES"
-    let name: String  // e.g. "Spain"
+    let code: String // ISO 3166-1 alpha-2, e.g. "ES"
+    let name: String // e.g. "Spain"
 }
 
 // MARK: - Service

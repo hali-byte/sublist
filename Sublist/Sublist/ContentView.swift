@@ -1,6 +1,6 @@
-import SwiftUI
-import SwiftData
 import OSLog
+import SwiftData
+import SwiftUI
 
 struct ContentView: View {
     @Query(sort: \Subscription.nextRenewalDate) private var subscriptions: [Subscription]
@@ -160,7 +160,6 @@ struct ContentView: View {
         }
     }
 
-    @ViewBuilder
     private func renewingSoonRow(_ sub: Subscription) -> some View {
         VStack(spacing: 0) {
             SubscriptionRow(subscription: sub, isGrouped: true, priceChange: priceChanges[sub.id])
@@ -171,11 +170,11 @@ struct ContentView: View {
                 Divider()
                     .padding(.horizontal, 16)
                 Button("Mark as Renewed") { triggerRenew(sub) }
-                .font(.body)
-                .foregroundStyle(.blue)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                    .font(.body)
+                    .foregroundStyle(.blue)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
             }
         }
         .background(Color(.secondarySystemGroupedBackground))
@@ -215,7 +214,6 @@ struct ContentView: View {
         }
     }
 
-    @ViewBuilder
     private func upcomingRow(_ sub: Subscription) -> some View {
         Button {
             selectedSubscription = sub
@@ -237,7 +235,6 @@ struct ContentView: View {
         }
     }
 
-    @ViewBuilder
     private func renewButton(_ sub: Subscription) -> some View {
         Button { triggerRenew(sub) } label: {
             Label("Renew", systemImage: "checkmark.circle")
@@ -245,7 +242,6 @@ struct ContentView: View {
         .tint(.green)
     }
 
-    @ViewBuilder
     private func deleteButton(_ sub: Subscription) -> some View {
         Button(role: .destructive) {
             requestDelete(sub)
@@ -300,7 +296,6 @@ struct ContentView: View {
         }
     }
 
-    @ViewBuilder
     private func undoBanner(_ pending: PendingDelete) -> some View {
         HStack(spacing: 12) {
             Text("Deleted \(pending.name)")

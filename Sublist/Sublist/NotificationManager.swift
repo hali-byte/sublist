@@ -1,6 +1,6 @@
-import UserNotifications
 import Observation
 import OSLog
+import UserNotifications
 
 @Observable
 final class NotificationManager {
@@ -85,7 +85,8 @@ final class NotificationManager {
 
     func scheduleAll(for subscriptions: [Subscription]) {
         guard canSchedule else {
-            Logger.notifications.info("Skipping reminder scheduling: not authorised (status \(self.authorizationStatus.rawValue)).")
+            let status = authorizationStatus.rawValue
+            Logger.notifications.info("Skipping reminder scheduling: not authorised (status \(status)).")
             return
         }
         UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
@@ -97,7 +98,9 @@ final class NotificationManager {
         if upcoming.count > Self.reminderLimit {
             Logger.notifications.warning("\(upcoming.count) renewals need reminders but iOS caps pending notifications; scheduling the soonest \(Self.reminderLimit).")
         }
-        for sub in upcoming.prefix(Self.reminderLimit) { schedule(for: sub) }
+        for sub in upcoming.prefix(Self.reminderLimit) {
+            schedule(for: sub)
+        }
         Logger.notifications.info("Scheduled \(min(upcoming.count, Self.reminderLimit)) renewal reminders.")
     }
 
@@ -108,7 +111,7 @@ final class NotificationManager {
         let candidates = [-48.0, -24.0]
             .map { trialEnd.addingTimeInterval($0 * 3600) }
             .filter { $0 > now }
-        if candidates.isEmpty && trialEnd > now {
+        if candidates.isEmpty, trialEnd > now {
             return [now.addingTimeInterval(60)]
         }
         return candidates
@@ -175,7 +178,7 @@ final class NotificationManager {
         let currency = UserDefaults.standard.string(forKey: AppConstants.currencyKey) ?? "USD"
 
         switch change {
-        case .increased(_, let new):
+        case let .increased(_, new):
             content.title = String(localized: "Price Increase Detected",
                                    comment: "Push notification title for price increase")
             let formatted = new.formatted(.currency(code: currency))
@@ -183,7 +186,7 @@ final class NotificationManager {
                 localized: "\(subscription.name) has increased to \(formatted)",
                 comment: "Push notification body for price increase"
             )
-        case .decreased(_, let new):
+        case let .decreased(_, new):
             content.title = String(localized: "Price Decrease Detected",
                                    comment: "Push notification title for price decrease")
             let formatted = new.formatted(.currency(code: currency))
@@ -191,7 +194,7 @@ final class NotificationManager {
                 localized: "\(subscription.name) has decreased to \(formatted)",
                 comment: "Push notification body for price decrease"
             )
-        case .cheaperPlanAvailable(let planName, let price):
+        case let .cheaperPlanAvailable(planName, price):
             content.title = String(localized: "Cheaper Plan Available",
                                    comment: "Push notification title for cheaper plan")
             let formatted = price.formatted(.currency(code: currency))

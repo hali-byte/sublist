@@ -6,7 +6,6 @@ import Foundation
 /// `AddSubscriptionView` and `PriceChangeDetector`. Pure and side-effect free
 /// so it can be unit-tested without a SwiftData container or network.
 enum CurrencyFormatting {
-
     /// The currencies offered in the in-app pickers.
     static let supportedCodes: [String] = [
         "USD", "EUR", "GBP", "AUD", "CAD", "CNY", "SGD", "SEK",
@@ -23,10 +22,10 @@ enum CurrencyFormatting {
     /// locale-derived symbol because `NumberFormatter` can return locale-prefixed
     /// forms like "US$" or "JP¥" depending on the device region.
     private static let curatedSymbols: [String: String] = [
-        "USD": "$",  "EUR": "€",  "GBP": "£",  "AUD": "A$",
-        "CAD": "C$", "CNY": "¥",  "SGD": "S$", "SEK": "kr",
+        "USD": "$", "EUR": "€", "GBP": "£", "AUD": "A$",
+        "CAD": "C$", "CNY": "¥", "SGD": "S$", "SEK": "kr",
         "PLN": "zł", "DKK": "kr", "NOK": "kr", "CHF": "Fr",
-        "BRL": "R$", "JPY": "¥",  "KRW": "₩",  "INR": "₹",
+        "BRL": "R$", "JPY": "¥", "KRW": "₩", "INR": "₹",
     ]
 
     /// Number of decimal places for the given currency code.

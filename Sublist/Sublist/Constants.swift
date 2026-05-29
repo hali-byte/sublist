@@ -10,7 +10,7 @@ enum AppConstants {
     static let backgroundPriceCheckEnabled = "backgroundPriceCheckEnabled"
     static let showPriceChangeTags = "showPriceChangeTags"
 
-    // Onboarding
+    /// Onboarding
     static let hasCompletedOnboarding = "hasCompletedOnboarding"
 
     // Review prompt gating

@@ -131,9 +131,9 @@ struct SummaryCard: View {
 
 #Preview {
     let subs = [
-        Subscription(name: "Spotify",  amount: 9.99,  billingCycle: .monthly, nextRenewalDate: .now, category: .music,         emoji: "🎵"),
-        Subscription(name: "Netflix",  amount: 15.99, billingCycle: .monthly, nextRenewalDate: .now, category: .entertainment,  emoji: "🎬"),
-        Subscription(name: "iCloud+",  amount: 35.99, billingCycle: .yearly,  nextRenewalDate: .now, category: .cloud,          emoji: "☁️"),
+        Subscription(name: "Spotify", amount: 9.99, billingCycle: .monthly, nextRenewalDate: .now, category: .music, emoji: "🎵"),
+        Subscription(name: "Netflix", amount: 15.99, billingCycle: .monthly, nextRenewalDate: .now, category: .entertainment, emoji: "🎬"),
+        Subscription(name: "iCloud+", amount: 35.99, billingCycle: .yearly, nextRenewalDate: .now, category: .cloud, emoji: "☁️"),
     ]
     SummaryCard(subscriptions: subs, currency: "USD", onBreakdownTap: {}, onCalendarTap: {})
         .padding()

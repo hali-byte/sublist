@@ -26,7 +26,7 @@ let onboardingPresets: [OnboardingPreset] = [
     .init(name: "Apple TV+", emoji: "🍿", category: .entertainment, price: 9.99),
     .init(name: "Hulu", emoji: "📺", category: .entertainment, price: 17.99),
     .init(name: "Amazon Prime", emoji: "📦", category: .entertainment, price: 14.99),
-    .init(name: "Duolingo", emoji: "🦉", category: .education, price: 12.99)
+    .init(name: "Duolingo", emoji: "🦉", category: .education, price: 12.99),
 ]
 
 struct OnboardingView: View {

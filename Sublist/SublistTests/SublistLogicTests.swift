@@ -1,6 +1,6 @@
-import Testing
 import Foundation
 @testable import Sublist
+import Testing
 
 // MARK: - AmountParser
 
@@ -152,21 +152,27 @@ struct ReviewPromptGatingTests {
     @Test("below day threshold is not eligible") func belowDays() {
         let (m, _) = makeManager()
         m.registerLaunch(now: date(2026, 6, 1))
-        for _ in 0..<5 { m.recordPositiveAction() }
+        for _ in 0 ..< 5 {
+            m.recordPositiveAction()
+        }
         #expect(m.shouldRequestReview(now: date(2026, 6, 2)) == false)
     }
 
     @Test("at threshold is eligible") func atThreshold() {
         let (m, _) = makeManager()
         m.registerLaunch(now: date(2026, 6, 1))
-        for _ in 0..<3 { m.recordPositiveAction() }
+        for _ in 0 ..< 3 {
+            m.recordPositiveAction()
+        }
         #expect(m.shouldRequestReview(now: date(2026, 6, 10)) == true)
     }
 
     @Test("already prompted this version is not eligible") func alreadyPrompted() {
         let (m, defaults) = makeManager()
         m.registerLaunch(now: date(2026, 6, 1))
-        for _ in 0..<3 { m.recordPositiveAction() }
+        for _ in 0 ..< 3 {
+            m.recordPositiveAction()
+        }
         defaults.set(AppConstants.appVersion, forKey: AppConstants.reviewLastPromptedVersion)
         #expect(m.shouldRequestReview(now: date(2026, 6, 10)) == false)
     }
@@ -174,7 +180,9 @@ struct ReviewPromptGatingTests {
     @Test("eligible again after a version change") func newVersion() {
         let (m, defaults) = makeManager()
         m.registerLaunch(now: date(2026, 6, 1))
-        for _ in 0..<3 { m.recordPositiveAction() }
+        for _ in 0 ..< 3 {
+            m.recordPositiveAction()
+        }
         defaults.set("0.0-old", forKey: AppConstants.reviewLastPromptedVersion)
         #expect(m.shouldRequestReview(now: date(2026, 6, 10)) == true)
     }

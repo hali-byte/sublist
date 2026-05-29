@@ -12,7 +12,7 @@ enum PriceChangeDetector {
     static func detectChanges(
         for subscription: Subscription,
         latestPlans: [SubscriptionPlan],
-        in context: ModelContext
+        in _: ModelContext
     ) -> PriceChangeType? {
         let period = subscription.billingCycle == .yearly ? "year" : "month"
         let matchingPlans = latestPlans.filter {
@@ -23,7 +23,7 @@ enum PriceChangeDetector {
         let tolerance = priceTolerance()
         if let closest = matchingPlans.min(by: {
             abs(NSDecimalNumber(decimal: $0.price).doubleValue - currentAmount) <
-            abs(NSDecimalNumber(decimal: $1.price).doubleValue - currentAmount)
+                abs(NSDecimalNumber(decimal: $1.price).doubleValue - currentAmount)
         }) {
             let newPrice = NSDecimalNumber(decimal: closest.price).doubleValue
             if newPrice > currentAmount + tolerance {
@@ -60,7 +60,8 @@ enum PriceChangeDetector {
         descriptor.fetchLimit = 20
 
         guard let records = try? context.fetch(descriptor),
-              let latestDate = records.first?.fetchDate else {
+              let latestDate = records.first?.fetchDate
+        else {
             return nil
         }
 

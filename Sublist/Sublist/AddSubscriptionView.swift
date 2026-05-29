@@ -1,5 +1,5 @@
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 // MARK: - Pricing state
 
@@ -13,17 +13,17 @@ enum PricingState {
 // MARK: - Popular preset
 
 #Preview {
-      AddSubscriptionView()
-          .modelContainer(for: Subscription.self, inMemory: true)
-  }
+    AddSubscriptionView()
+        .modelContainer(for: Subscription.self, inMemory: true)
+}
 
 struct PopularSubscription: Identifiable, Equatable {
     let id = UUID()
     let name: String
-    let emoji: String   // fallback when logo fails to load
+    let emoji: String // fallback when logo fails to load
     let category: Category
     let billingCycle: BillingCycle
-    let domain: String  // used to fetch logo via Clearbit
+    let domain: String // used to fetch logo via Clearbit
     var pricingProvider: (any SubscriptionPricingProvider)? = nil
 
     static func == (lhs: PopularSubscription, rhs: PopularSubscription) -> Bool {
@@ -32,23 +32,23 @@ struct PopularSubscription: Identifiable, Equatable {
 }
 
 private let popularSubscriptions: [PopularSubscription] = [
-    PopularSubscription(name: "Netflix",       emoji: "🎬", category: .entertainment, billingCycle: .monthly,  domain: "netflix.com",       pricingProvider: NetflixPricingProvider()),
-    PopularSubscription(name: "Spotify",       emoji: "🎵", category: .music,         billingCycle: .monthly,  domain: "spotify.com",       pricingProvider: SpotifyPricingProvider()),
-    PopularSubscription(name: "Apple Music",   emoji: "🎶", category: .music,         billingCycle: .monthly,  domain: "music.apple.com",   pricingProvider: AppleMusicPricingProvider()),
-    PopularSubscription(name: "YouTube",       emoji: "▶️", category: .entertainment, billingCycle: .monthly,  domain: "youtube.com",       pricingProvider: YouTubePricingProvider()),
-    PopularSubscription(name: "Disney+",       emoji: "✨", category: .entertainment, billingCycle: .monthly,  domain: "disneyplus.com",   pricingProvider: DisneyPlusPricingProvider()),
-    PopularSubscription(name: "Amazon Prime",  emoji: "📦", category: .entertainment, billingCycle: .yearly,   domain: "amazon.com",       pricingProvider: AmazonPrimePricingProvider()),
-    PopularSubscription(name: "Apple TV+",     emoji: "🍿", category: .entertainment, billingCycle: .monthly,  domain: "tv.apple.com",      pricingProvider: AppleTVPricingProvider()),
-    PopularSubscription(name: "Hulu",          emoji: "📺", category: .entertainment, billingCycle: .monthly,  domain: "hulu.com",         pricingProvider: HuluPricingProvider()),
-    PopularSubscription(name: "iCloud+",       emoji: "☁️", category: .cloud,         billingCycle: .monthly,  domain: "icloud.com",        pricingProvider: ICloudPricingProvider()),
-    PopularSubscription(name: "Google One",    emoji: "🔵", category: .cloud,         billingCycle: .monthly,  domain: "one.google.com",    pricingProvider: GoogleOnePricingProvider()),
-    PopularSubscription(name: "ChatGPT Plus",  emoji: "🤖", category: .productivity,  billingCycle: .monthly,  domain: "openai.com",        pricingProvider: ChatGPTPricingProvider()),
-    PopularSubscription(name: "Notion",        emoji: "📝", category: .productivity,  billingCycle: .monthly,  domain: "notion.so",         pricingProvider: NotionPricingProvider()),
-    PopularSubscription(name: "1Password",     emoji: "🔐", category: .security,      billingCycle: .yearly,   domain: "1password.com",     pricingProvider: OnePasswordPricingProvider()),
-    PopularSubscription(name: "NordVPN",       emoji: "🛡️", category: .security,      billingCycle: .yearly,   domain: "nordvpn.com",      pricingProvider: NordVPNPricingProvider()),
-    PopularSubscription(name: "Duolingo",      emoji: "🦉", category: .education,     billingCycle: .monthly,  domain: "duolingo.com",      pricingProvider: DuolingoPricingProvider()),
-    PopularSubscription(name: "Crunchyroll",   emoji: "🎌", category: .entertainment, billingCycle: .monthly,  domain: "crunchyroll.com",   pricingProvider: CrunchyrollPricingProvider()),
-    PopularSubscription(name: "NYT",           emoji: "📰", category: .news,          billingCycle: .monthly,  domain: "nytimes.com",       pricingProvider: NYTPricingProvider()),
+    PopularSubscription(name: "Netflix", emoji: "🎬", category: .entertainment, billingCycle: .monthly, domain: "netflix.com", pricingProvider: NetflixPricingProvider()),
+    PopularSubscription(name: "Spotify", emoji: "🎵", category: .music, billingCycle: .monthly, domain: "spotify.com", pricingProvider: SpotifyPricingProvider()),
+    PopularSubscription(name: "Apple Music", emoji: "🎶", category: .music, billingCycle: .monthly, domain: "music.apple.com", pricingProvider: AppleMusicPricingProvider()),
+    PopularSubscription(name: "YouTube", emoji: "▶️", category: .entertainment, billingCycle: .monthly, domain: "youtube.com", pricingProvider: YouTubePricingProvider()),
+    PopularSubscription(name: "Disney+", emoji: "✨", category: .entertainment, billingCycle: .monthly, domain: "disneyplus.com", pricingProvider: DisneyPlusPricingProvider()),
+    PopularSubscription(name: "Amazon Prime", emoji: "📦", category: .entertainment, billingCycle: .yearly, domain: "amazon.com", pricingProvider: AmazonPrimePricingProvider()),
+    PopularSubscription(name: "Apple TV+", emoji: "🍿", category: .entertainment, billingCycle: .monthly, domain: "tv.apple.com", pricingProvider: AppleTVPricingProvider()),
+    PopularSubscription(name: "Hulu", emoji: "📺", category: .entertainment, billingCycle: .monthly, domain: "hulu.com", pricingProvider: HuluPricingProvider()),
+    PopularSubscription(name: "iCloud+", emoji: "☁️", category: .cloud, billingCycle: .monthly, domain: "icloud.com", pricingProvider: ICloudPricingProvider()),
+    PopularSubscription(name: "Google One", emoji: "🔵", category: .cloud, billingCycle: .monthly, domain: "one.google.com", pricingProvider: GoogleOnePricingProvider()),
+    PopularSubscription(name: "ChatGPT Plus", emoji: "🤖", category: .productivity, billingCycle: .monthly, domain: "openai.com", pricingProvider: ChatGPTPricingProvider()),
+    PopularSubscription(name: "Notion", emoji: "📝", category: .productivity, billingCycle: .monthly, domain: "notion.so", pricingProvider: NotionPricingProvider()),
+    PopularSubscription(name: "1Password", emoji: "🔐", category: .security, billingCycle: .yearly, domain: "1password.com", pricingProvider: OnePasswordPricingProvider()),
+    PopularSubscription(name: "NordVPN", emoji: "🛡️", category: .security, billingCycle: .yearly, domain: "nordvpn.com", pricingProvider: NordVPNPricingProvider()),
+    PopularSubscription(name: "Duolingo", emoji: "🦉", category: .education, billingCycle: .monthly, domain: "duolingo.com", pricingProvider: DuolingoPricingProvider()),
+    PopularSubscription(name: "Crunchyroll", emoji: "🎌", category: .entertainment, billingCycle: .monthly, domain: "crunchyroll.com", pricingProvider: CrunchyrollPricingProvider()),
+    PopularSubscription(name: "NYT", emoji: "📰", category: .news, billingCycle: .monthly, domain: "nytimes.com", pricingProvider: NYTPricingProvider()),
 ]
 
 // MARK: - View
@@ -82,6 +82,7 @@ struct AddSubscriptionView: View {
         NavigationStack {
             Form {
                 // MARK: Popular subscriptions
+
                 Section("Popular Subscriptions") {
                     ScrollView(.horizontal, showsIndicators: false) {
                         LazyHStack(spacing: 10) {
@@ -102,6 +103,7 @@ struct AddSubscriptionView: View {
                 }
 
                 // MARK: AI plan picker (Spotify and future supported services)
+
                 switch pricingState {
                 case .idle:
                     EmptyView()
@@ -112,6 +114,7 @@ struct AddSubscriptionView: View {
                 }
 
                 // MARK: Manual entry
+
                 Section("Or Add Manually") {
                     HStack {
                         Button { showEmojiPicker = true } label: {
@@ -135,6 +138,7 @@ struct AddSubscriptionView: View {
                 }
 
                 // MARK: Billing
+
                 Section("Billing") {
                     Picker("Currency", selection: $currency) {
                         Text("USD — US Dollar").tag("USD")
@@ -190,7 +194,7 @@ struct AddSubscriptionView: View {
                 EmojiPickerView(selectedEmoji: $emoji)
             }
             .sheet(isPresented: $showCountryPicker) {
-                if case .loaded(_, _, let code) = pricingState {
+                if case let .loaded(_, _, code) = pricingState {
                     CountryPickerView(initialCode: countryOverrideCode ?? code) { newCode in
                         countryOverrideCode = newCode
                         pricingState = .loading
@@ -231,7 +235,7 @@ struct AddSubscriptionView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 4)
 
-        case .loaded(let plans, let countryName, _):
+        case let .loaded(plans, countryName, _):
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     Text("Prices for \(countryName)")
@@ -296,7 +300,7 @@ struct AddSubscriptionView: View {
     }
 
     private func billingLabel(for plan: SubscriptionPlan) -> String {
-        let price  = NSDecimalNumber(decimal: plan.price).doubleValue
+        let price = NSDecimalNumber(decimal: plan.price).doubleValue
         let period = plan.billingPeriod.lowercased().hasPrefix("year") ? "year" : "month"
         return "\(CurrencyFormatting.format(price, code: plan.currency)) / \(period)"
     }
@@ -307,9 +311,9 @@ struct AddSubscriptionView: View {
         withAnimation(.easeInOut(duration: 0.15)) {
             selectedPopular = preset
         }
-        name         = preset.name
-        emoji        = preset.emoji
-        category     = preset.category
+        name = preset.name
+        emoji = preset.emoji
+        category = preset.category
         billingCycle = preset.billingCycle
 
         pricingTask?.cancel()
@@ -363,9 +367,9 @@ struct AddSubscriptionView: View {
 
     private func applyPlan(_ plan: SubscriptionPlan) {
         selectedPlan = plan
-        amountText   = NSDecimalNumber(decimal: plan.price).stringValue
+        amountText = NSDecimalNumber(decimal: plan.price).stringValue
         billingCycle = plan.billingPeriod.lowercased().hasPrefix("year") ? .yearly : .monthly
-        currency     = mapCurrency(plan.currency)
+        currency = mapCurrency(plan.currency)
     }
 
     private func mapCurrency(_ code: String) -> String {
@@ -403,4 +407,3 @@ struct AddSubscriptionView: View {
         dismiss()
     }
 }
-

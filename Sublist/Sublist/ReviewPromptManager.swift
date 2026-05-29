@@ -1,6 +1,6 @@
+import Foundation
 import StoreKit
 import SwiftUI
-import Foundation
 
 /// Decides when to ask for an App Store rating.
 ///

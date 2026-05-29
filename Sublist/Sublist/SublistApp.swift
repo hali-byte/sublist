@@ -1,7 +1,7 @@
-import SwiftUI
-import SwiftData
-import UserNotifications
 import OSLog
+import SwiftData
+import SwiftUI
+import UserNotifications
 
 @main
 struct SublistApp: App {
@@ -15,9 +15,9 @@ struct SublistApp: App {
 
     init() {
         let (container, failed) = Self.makeContainer()
-        self.modelContainer = container
-        self.didFailPersistentStore = failed
-        self.notificationDelegate = NotificationDelegate(modelContainer: container)
+        modelContainer = container
+        didFailPersistentStore = failed
+        notificationDelegate = NotificationDelegate(modelContainer: container)
         UNUserNotificationCenter.current().delegate = notificationDelegate
 
         BackgroundPriceChecker.register()
@@ -29,7 +29,7 @@ struct SublistApp: App {
     /// instead of crashing. Only an unrecoverable failure of both traps.
     private static func makeContainer() -> (ModelContainer, Bool) {
         do {
-            return (try ModelContainer(for: Subscription.self, PriceRecord.self), false)
+            return try (ModelContainer(for: Subscription.self, PriceRecord.self), false)
         } catch {
             Logger.app.error("Persistent ModelContainer failed: \(error.localizedDescription)")
             let config = ModelConfiguration(isStoredInMemoryOnly: true)

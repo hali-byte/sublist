@@ -1,5 +1,5 @@
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct SubscriptionRow: View {
     let subscription: Subscription
@@ -9,27 +9,27 @@ struct SubscriptionRow: View {
 
     private var renewalLabel: String {
         switch subscription.daysUntilRenewal {
-        case ..<0: return String(localized: "Overdue",   comment: "Subscription is past its renewal date")
-        case 0:    return String(localized: "Due today", comment: "Subscription renews today")
-        case 1:    return String(localized: "Tomorrow",  comment: "Subscription renews tomorrow")
-        default:   return String(localized: "In \(subscription.daysUntilRenewal) days", comment: "Days until subscription renews")
+        case ..<0: return String(localized: "Overdue", comment: "Subscription is past its renewal date")
+        case 0: return String(localized: "Due today", comment: "Subscription renews today")
+        case 1: return String(localized: "Tomorrow", comment: "Subscription renews tomorrow")
+        default: return String(localized: "In \(subscription.daysUntilRenewal) days", comment: "Days until subscription renews")
         }
     }
 
     private var renewalColor: Color {
         switch subscription.daysUntilRenewal {
-        case ..<2:  return .red
-        case 2...7: return .orange
-        default:    return .secondary
+        case ..<2: return .red
+        case 2 ... 7: return .orange
+        default: return .secondary
         }
     }
 
     private var trialLabel: String {
         switch subscription.daysUntilTrialEnd ?? 0 {
         case ..<0: return String(localized: "Trial ended", comment: "Free trial has ended")
-        case 0:    return String(localized: "Trial ends today", comment: "Free trial ends today")
-        case 1:    return String(localized: "Trial ends tomorrow", comment: "Free trial ends tomorrow")
-        default:   return String(localized: "Trial: \(subscription.daysUntilTrialEnd ?? 0)d left", comment: "Days left in free trial")
+        case 0: return String(localized: "Trial ends today", comment: "Free trial ends today")
+        case 1: return String(localized: "Trial ends tomorrow", comment: "Free trial ends tomorrow")
+        default: return String(localized: "Trial: \(subscription.daysUntilTrialEnd ?? 0)d left", comment: "Days left in free trial")
         }
     }
 
@@ -174,13 +174,13 @@ struct SubscriptionRow: View {
 
 #Preview {
     let subs = [
-        Subscription(name: "Netflix",  amount: 15.99, billingCycle: .monthly,
+        Subscription(name: "Netflix", amount: 15.99, billingCycle: .monthly,
                      nextRenewalDate: .now,
                      category: .entertainment, emoji: "🎬"),
-        Subscription(name: "iCloud+",  amount: 35.99, billingCycle: .yearly,
+        Subscription(name: "iCloud+", amount: 35.99, billingCycle: .yearly,
                      nextRenewalDate: Calendar.current.date(byAdding: .day, value: 45, to: .now)!,
                      category: .cloud, emoji: "☁️"),
-        Subscription(name: "Spotify",  amount: 9.99,  billingCycle: .monthly,
+        Subscription(name: "Spotify", amount: 9.99, billingCycle: .monthly,
                      nextRenewalDate: Calendar.current.date(byAdding: .day, value: 4, to: .now)!,
                      category: .music, emoji: "🎵"),
     ]

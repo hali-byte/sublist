@@ -11,9 +11,9 @@ enum PricingError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .geolocationFailed:  return "Could not determine your country."
-        case .fetchFailed:        return "Could not fetch pricing data."
-        case .parsingFailed:      return "Could not read pricing data."
+        case .geolocationFailed: return "Could not determine your country."
+        case .fetchFailed: return "Could not fetch pricing data."
+        case .parsingFailed: return "Could not read pricing data."
         case .unsupportedCountry: return "Pricing unavailable for this country."
         }
     }
@@ -31,7 +31,8 @@ final class PricingService {
 
     private let bearerToken: String = {
         guard let token = Bundle.main.object(forInfoDictionaryKey: "SUBLIST_API_TOKEN") as? String,
-              !token.isEmpty, token != "PASTE_YOUR_TOKEN_HERE" else {
+              !token.isEmpty, token != "PASTE_YOUR_TOKEN_HERE"
+        else {
             fatalError("SUBLIST_API_TOKEN is missing or unset in Info.plist / Secrets.xcconfig")
         }
         return token
@@ -82,9 +83,9 @@ final class PricingService {
         let step: String
         if let pricingError = lastError as? PricingError {
             switch pricingError {
-            case .fetchFailed:        step = "htmlFetch"
-            case .parsingFailed:      step = "proxyAPI"
-            case .geolocationFailed:  step = "geolocation"
+            case .fetchFailed: step = "htmlFetch"
+            case .parsingFailed: step = "proxyAPI"
+            case .geolocationFailed: step = "geolocation"
             case .unsupportedCountry: step = "unsupportedCountry"
             }
         } else {
@@ -126,13 +127,13 @@ final class PricingService {
         request.setValue("en-US,en;q=0.9", forHTTPHeaderField: "Accept-Language")
 
         let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+        guard let http = response as? HTTPURLResponse, (200 ... 299).contains(http.statusCode) else {
             throw PricingError.fetchFailed
         }
         guard let text = String(data: data, encoding: .utf8) ?? String(data: data, encoding: .isoLatin1) else {
             throw PricingError.fetchFailed
         }
-        return String(text.prefix(50_000))
+        return String(text.prefix(50000))
     }
 
     // MARK: - Proxy extraction
@@ -142,7 +143,6 @@ final class PricingService {
         provider: any SubscriptionPricingProvider,
         countryCode: String
     ) async throws -> [SubscriptionPlan] {
-
         let payload: [String: String] = [
             "html": html,
             "serviceName": provider.serviceName,
@@ -202,6 +202,7 @@ final class PricingService {
                 let currency: String
                 let billingPeriod: String
             }
+
             let plans: [Plan]
         }
 
