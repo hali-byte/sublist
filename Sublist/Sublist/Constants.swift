@@ -12,6 +12,7 @@ enum AppConstants {
 
     /// Onboarding
     static let hasCompletedOnboarding = "hasCompletedOnboarding"
+    static let notificationNudgeDismissed = "notificationNudgeDismissed"
 
     // Review prompt gating
     static let reviewFirstLaunchDate = "reviewFirstLaunchDate"

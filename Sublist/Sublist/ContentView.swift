@@ -8,10 +8,12 @@ struct ContentView: View {
     @Query private var priceRecords: [PriceRecord]
     @Environment(\.modelContext) private var modelContext
     @Environment(\.requestReview) private var requestReview
+    @Environment(\.openURL) private var openURL
     @AppStorage(AppConstants.currencyKey) private var currency: String = "USD"
     @AppStorage(AppConstants.countryCodeKey) private var countryCode: String = ""
     @AppStorage(AppConstants.showPriceChangeTags) private var showPriceChangeTags: Bool = true
     @AppStorage(AppConstants.hasCompletedOnboarding) private var hasCompletedOnboarding: Bool = false
+    @AppStorage(AppConstants.notificationNudgeDismissed) private var notificationNudgeDismissed: Bool = false
     @State private var showingAddSheet = false
     @State private var showingSettings = false
     @State private var showingBreakdown = false
@@ -34,6 +36,24 @@ struct ContentView: View {
 
     private var upcoming: [Subscription] {
         subscriptions.filter { $0.daysUntilRenewal > 7 && !isPendingDelete($0) }
+    }
+
+    private var showNotificationNudge: Bool {
+        guard !notificationNudgeDismissed else { return false }
+        let status = NotificationManager.shared.authorizationStatus
+        return status == .notDetermined || status == .denied
+    }
+
+    private func enableNotifications() {
+        let manager = NotificationManager.shared
+        if manager.authorizationStatus == .denied {
+            if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+        } else {
+            Task {
+                await manager.requestPermission()
+                manager.scheduleAll(for: subscriptions)
+            }
+        }
     }
 
     private var priceChanges: [UUID: PriceChangeType] {
@@ -91,6 +111,19 @@ struct ContentView: View {
                                 }
                             } header: {
                                 Text("Upcoming")
+                            }
+                        }
+
+                        if showNotificationNudge {
+                            Section {
+                                NotificationNudgeCard(
+                                    isDenied: NotificationManager.shared.authorizationStatus == .denied,
+                                    onEnable: enableNotifications,
+                                    onDismiss: { withAnimation { notificationNudgeDismissed = true } }
+                                )
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
+                                .listRowInsets(EdgeInsets(top: 12, leading: 0, bottom: 4, trailing: 0))
                             }
                         }
                     }
