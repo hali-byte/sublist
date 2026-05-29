@@ -10,6 +10,7 @@ struct ContentView: View {
     @AppStorage(AppConstants.currencyKey) private var currency: String = "USD"
     @AppStorage(AppConstants.countryCodeKey) private var countryCode: String = ""
     @AppStorage(AppConstants.showPriceChangeTags) private var showPriceChangeTags: Bool = true
+    @AppStorage(AppConstants.hasCompletedOnboarding) private var hasCompletedOnboarding: Bool = false
     @State private var showingAddSheet = false
     @State private var showingSettings = false
     @State private var showingBreakdown = false
@@ -119,6 +120,12 @@ struct ContentView: View {
             }
             .sheet(isPresented: $showingSettings) {
                 SettingsView()
+            }
+            .fullScreenCover(isPresented: Binding(
+                get: { !hasCompletedOnboarding },
+                set: { presented in if !presented { hasCompletedOnboarding = true } }
+            )) {
+                OnboardingView()
             }
             .alert("Set Your Country", isPresented: $showCountryPrompt) {
                 Button("Confirm") {
