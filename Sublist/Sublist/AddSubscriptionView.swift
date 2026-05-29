@@ -63,6 +63,8 @@ struct AddSubscriptionView: View {
     @State private var amountText: String = ""
     @State private var billingCycle = BillingCycle.monthly
     @State private var nextRenewalDate = Date()
+    @State private var isTrial = false
+    @State private var trialEndDate = Calendar.current.date(byAdding: .day, value: 7, to: Date()) ?? Date()
     @State private var category = Category.entertainment
     @State private var emoji = "📱"
     @State private var showEmojiPicker = false
@@ -170,7 +172,15 @@ struct AddSubscriptionView: View {
                             Text(cycle.localizedName).tag(cycle)
                         }
                     }
-                    DatePicker("Next Renewal", selection: $nextRenewalDate, displayedComponents: .date)
+                    Toggle("Free trial", isOn: $isTrial.animation())
+                    if isTrial {
+                        DatePicker("Trial ends (first charge)", selection: $trialEndDate, in: Date()..., displayedComponents: .date)
+                        Text("We'll remind you 48 and 24 hours before the trial ends so you can cancel before you're charged.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        DatePicker("Next Renewal", selection: $nextRenewalDate, displayedComponents: .date)
+                    }
                 }
             }
             .scrollContentBackground(.hidden)
@@ -372,9 +382,10 @@ struct AddSubscriptionView: View {
             name: name,
             amount: amount,
             billingCycle: billingCycle,
-            nextRenewalDate: nextRenewalDate,
+            nextRenewalDate: isTrial ? trialEndDate : nextRenewalDate,
             category: category,
-            emoji: emoji
+            emoji: emoji,
+            trialEndDate: isTrial ? trialEndDate : nil
         )
         modelContext.insert(sub)
 

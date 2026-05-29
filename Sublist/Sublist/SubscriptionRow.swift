@@ -24,6 +24,15 @@ struct SubscriptionRow: View {
         }
     }
 
+    private var trialLabel: String {
+        switch subscription.daysUntilTrialEnd ?? 0 {
+        case ..<0: return String(localized: "Trial ended", comment: "Free trial has ended")
+        case 0:    return String(localized: "Trial ends today", comment: "Free trial ends today")
+        case 1:    return String(localized: "Trial ends tomorrow", comment: "Free trial ends tomorrow")
+        default:   return String(localized: "Trial: \(subscription.daysUntilTrialEnd ?? 0)d left", comment: "Days left in free trial")
+        }
+    }
+
     var body: some View {
         if isGrouped {
             rowContent
@@ -75,7 +84,15 @@ struct SubscriptionRow: View {
                 if let change = priceChange {
                     priceChangeBadge(change)
                 }
-                if subscription.daysUntilRenewal <= 0 {
+                if subscription.isTrial {
+                    Text(trialLabel)
+                        .font(.caption.weight(.medium).monospacedDigit())
+                        .foregroundStyle(.orange)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color.orange.opacity(0.12))
+                        .clipShape(Capsule())
+                } else if subscription.daysUntilRenewal <= 0 {
                     Text(renewalLabel)
                         .font(.caption.weight(.medium).monospacedDigit())
                         .foregroundStyle(.red)
@@ -111,7 +128,7 @@ struct SubscriptionRow: View {
             case .cheaperPlanAvailable: parts.append(String(localized: "Cheaper plan available"))
             }
         }
-        parts.append(renewalLabel)
+        parts.append(subscription.isTrial ? trialLabel : renewalLabel)
         return parts.joined(separator: ", ")
     }
 

@@ -10,12 +10,30 @@ class Subscription {
     var nextRenewalDate: Date
     var category: Category
     var emoji: String
+    /// When set and in the future, this subscription is on a free trial that
+    /// converts to a paid charge of `amount` on this date. nil = not a trial.
+    var trialEndDate: Date? = nil
 
     @Relationship(deleteRule: .cascade, inverse: \PriceRecord.subscription)
     var priceRecords: [PriceRecord] = []
 
     var monthlyCost: Double {
         billingCycle == .yearly ? amount / 12.0 : amount
+    }
+
+    /// True while the trial is still active (end date in the future).
+    var isTrial: Bool {
+        guard let trialEndDate else { return false }
+        return trialEndDate > .now
+    }
+
+    var daysUntilTrialEnd: Int? {
+        guard let trialEndDate else { return nil }
+        return Calendar.current.dateComponents(
+            [.day],
+            from: Calendar.current.startOfDay(for: .now),
+            to: Calendar.current.startOfDay(for: trialEndDate)
+        ).day
     }
 
     var daysUntilRenewal: Int {
@@ -39,7 +57,8 @@ class Subscription {
         billingCycle: BillingCycle,
         nextRenewalDate: Date,
         category: Category,
-        emoji: String
+        emoji: String,
+        trialEndDate: Date? = nil
     ) {
         self.name = name
         self.amount = amount
@@ -47,6 +66,7 @@ class Subscription {
         self.nextRenewalDate = nextRenewalDate
         self.category = category
         self.emoji = emoji
+        self.trialEndDate = trialEndDate
     }
 }
 

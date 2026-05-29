@@ -188,6 +188,34 @@ struct ReviewPromptGatingTests {
     }
 }
 
+// MARK: - Trial reminder dates
+
+@MainActor
+@Suite("Trial reminder dates")
+struct TrialReminderDatesTests {
+    @Test("future trial yields 48h and 24h reminders") func twoReminders() {
+        let now = Date(timeIntervalSince1970: 1_780_000_000)
+        let trialEnd = now.addingTimeInterval(10 * 86400)
+        let dates = NotificationManager.trialReminderDates(trialEnd: trialEnd, now: now)
+        #expect(dates.count == 2)
+        #expect(dates.allSatisfy { $0 > now && $0 < trialEnd })
+    }
+
+    @Test("trial within 24h falls back to one near-term reminder") func fallback() {
+        let now = Date(timeIntervalSince1970: 1_780_000_000)
+        let trialEnd = now.addingTimeInterval(12 * 3600)
+        let dates = NotificationManager.trialReminderDates(trialEnd: trialEnd, now: now)
+        #expect(dates.count == 1)
+        #expect(dates[0] > now && dates[0] < trialEnd)
+    }
+
+    @Test("past trial yields no reminders") func pastTrial() {
+        let now = Date(timeIntervalSince1970: 1_780_000_000)
+        let trialEnd = now.addingTimeInterval(-3600)
+        #expect(NotificationManager.trialReminderDates(trialEnd: trialEnd, now: now).isEmpty)
+    }
+}
+
 // MARK: - NotificationManager.reminderFireDate
 
 @Suite("Reminder fire date")

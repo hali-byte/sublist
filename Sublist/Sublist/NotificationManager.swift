@@ -101,8 +101,27 @@ final class NotificationManager {
         Logger.notifications.info("Scheduled \(min(upcoming.count, Self.reminderLimit)) renewal reminders.")
     }
 
+    /// Fire dates for free-trial "cancel before you're charged" reminders:
+    /// 48h and 24h before the trial converts, dropping any already in the past.
+    /// Falls back to a near-term reminder if the trial ends within 24h.
+    static func trialReminderDates(trialEnd: Date, now: Date = Date()) -> [Date] {
+        let candidates = [-48.0, -24.0]
+            .map { trialEnd.addingTimeInterval($0 * 3600) }
+            .filter { $0 > now }
+        if candidates.isEmpty && trialEnd > now {
+            return [now.addingTimeInterval(60)]
+        }
+        return candidates
+    }
+
     func schedule(for subscription: Subscription) {
         guard canSchedule else { return }
+
+        if let trialEnd = subscription.trialEndDate, trialEnd > Date() {
+            scheduleTrialReminders(for: subscription, trialEnd: trialEnd)
+            return
+        }
+
         guard let fireDate = Self.reminderFireDate(forRenewal: subscription.nextRenewalDate) else { return }
 
         let content = UNMutableNotificationContent()
@@ -123,6 +142,30 @@ final class NotificationManager {
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: interval, repeats: false)
         let request = UNNotificationRequest(identifier: subscription.id.uuidString, content: content, trigger: trigger)
         UNUserNotificationCenter.current().add(request, withCompletionHandler: nil)
+    }
+
+    private func scheduleTrialReminders(for subscription: Subscription, trialEnd: Date) {
+        let currency = UserDefaults.standard.string(forKey: AppConstants.currencyKey) ?? "USD"
+        let amount = subscription.amount.formatted(.currency(code: currency))
+        for (index, fireDate) in Self.trialReminderDates(trialEnd: trialEnd).enumerated() {
+            let content = UNMutableNotificationContent()
+            content.title = String(localized: "Free trial ending soon",
+                                   comment: "Push notification title for a free-trial ending")
+            content.body = String(
+                localized: "\(subscription.emoji) Your \(subscription.name) trial ends soon — you'll be charged \(amount). Cancel now if you don't want to keep it.",
+                comment: "Trial reminder body. Parameters: emoji, subscription name, formatted price"
+            )
+            content.sound = .default
+            content.categoryIdentifier = Self.renewalCategoryID
+            let interval = max(1, fireDate.timeIntervalSinceNow)
+            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: interval, repeats: false)
+            let request = UNNotificationRequest(
+                identifier: "trial\(index)_\(subscription.id.uuidString)",
+                content: content,
+                trigger: trigger
+            )
+            UNUserNotificationCenter.current().add(request, withCompletionHandler: nil)
+        }
     }
 
     func schedulePriceChangeNotification(for subscription: Subscription, change: PriceChangeType) {
@@ -169,6 +212,9 @@ final class NotificationManager {
     }
 
     func cancel(for subscription: Subscription) {
-        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [subscription.id.uuidString])
+        let id = subscription.id.uuidString
+        UNUserNotificationCenter.current().removePendingNotificationRequests(
+            withIdentifiers: [id, "trial0_\(id)", "trial1_\(id)"]
+        )
     }
 }
