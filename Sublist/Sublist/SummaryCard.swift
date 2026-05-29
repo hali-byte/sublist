@@ -68,6 +68,7 @@ struct SummaryCard: View {
                 }
             }
             .padding(16)
+            .accessibilityElement(children: .combine)
 
             Divider().padding(.horizontal, 16)
 
@@ -84,7 +85,7 @@ struct SummaryCard: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 13)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(PressableRowStyle())
 
             Divider().padding(.horizontal, 16)
 
@@ -116,7 +117,7 @@ struct SummaryCard: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 13)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(PressableRowStyle())
         }
         .background(Color(.secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 16))

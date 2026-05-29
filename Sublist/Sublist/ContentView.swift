@@ -18,13 +18,19 @@ struct ContentView: View {
     @State private var showCountryPrompt = false
     @State private var detectedCountryCode = ""
     @State private var detectedCountryName = ""
+    @State private var pendingDelete: PendingDelete?
+    @State private var deleteCommitTask: Task<Void, Never>?
+
+    private func isPendingDelete(_ sub: Subscription) -> Bool {
+        pendingDelete?.id == sub.id
+    }
 
     private var renewingSoon: [Subscription] {
-        subscriptions.filter { $0.daysUntilRenewal <= 7 }
+        subscriptions.filter { $0.daysUntilRenewal <= 7 && !isPendingDelete($0) }
     }
 
     private var upcoming: [Subscription] {
-        subscriptions.filter { $0.daysUntilRenewal > 7 }
+        subscriptions.filter { $0.daysUntilRenewal > 7 && !isPendingDelete($0) }
     }
 
     private var priceChanges: [UUID: PriceChangeType] {
@@ -78,6 +84,11 @@ struct ContentView: View {
                         }
                     }
                     .animation(.spring(response: 0.35, dampingFraction: 0.85), value: subscriptions.count)
+                }
+            }
+            .overlay(alignment: .bottom) {
+                if let pendingDelete {
+                    undoBanner(pendingDelete)
                 }
             }
             .navigationTitle("Your subscriptions")
@@ -150,24 +161,7 @@ struct ContentView: View {
             if sub.daysUntilRenewal <= 0 {
                 Divider()
                     .padding(.horizontal, 16)
-                Button("Mark as Renewed") {
-                    UIImpactFeedbackGenerator(style: .soft).impactOccurred()
-
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
-                        _ = renewingIDs.insert(sub.id)
-                    }
-
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        UINotificationFeedbackGenerator().notificationOccurred(.success)
-                    }
-
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                        withAnimation(.spring(response: 0.7, dampingFraction: 0.85)) {
-                            _ = renewingIDs.remove(sub.id)
-                            markAsRenewed(sub)
-                        }
-                    }
-                }
+                Button("Mark as Renewed") { triggerRenew(sub) }
                 .font(.body)
                 .foregroundStyle(.blue)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -181,8 +175,12 @@ struct ContentView: View {
             if renewingIDs.contains(sub.id) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 14)
-                        .fill(Color.green.opacity(0.10))
+                        .fill(Color.green.opacity(0.12))
                     ConfettiView()
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 40))
+                        .foregroundStyle(.green)
+                        .transition(.scale(scale: 0.25).combined(with: .opacity))
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 14))
                 .transition(
@@ -193,12 +191,16 @@ struct ContentView: View {
                 )
             }
         }
-        .scaleEffect(renewingIDs.contains(sub.id) ? 0.98 : 1.0)
+        .scaleEffect(renewingIDs.contains(sub.id) ? 1.02 : 1.0)
+        .allowsHitTesting(!renewingIDs.contains(sub.id))
         .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
         .listRowBackground(Color.clear)
         .listRowSeparator(.hidden)
         .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
         .transition(.opacity.combined(with: .offset(y: 6)))
+        .swipeActions(edge: .leading, allowsFullSwipe: true) {
+            renewButton(sub)
+        }
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             deleteButton(sub)
         }
@@ -215,19 +217,125 @@ struct ContentView: View {
         .buttonStyle(.plain)
         .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
         .transition(.opacity.combined(with: .offset(y: 6)))
+        .swipeActions(edge: .leading, allowsFullSwipe: true) {
+            Button { renewNow(sub) } label: {
+                Label("Renew", systemImage: "checkmark.circle")
+            }
+            .tint(.green)
+        }
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             deleteButton(sub)
         }
     }
 
     @ViewBuilder
+    private func renewButton(_ sub: Subscription) -> some View {
+        Button { triggerRenew(sub) } label: {
+            Label("Renew", systemImage: "checkmark.circle")
+        }
+        .tint(.green)
+    }
+
+    @ViewBuilder
     private func deleteButton(_ sub: Subscription) -> some View {
         Button(role: .destructive) {
-            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-            NotificationManager.shared.cancel(for: sub)
-            modelContext.delete(sub)
+            requestDelete(sub)
         } label: {
             Label("Delete", systemImage: "trash")
+        }
+    }
+
+    // MARK: - Deferred delete with undo
+
+    /// Hides the row and starts a short timer before the actual delete, so an
+    /// accidental swipe is recoverable. The model (and its price history) is
+    /// only removed once the window passes without an undo.
+    private func requestDelete(_ sub: Subscription) {
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        commitPendingDeleteNow()
+        NotificationManager.shared.cancel(for: sub)
+        let pending = PendingDelete(id: sub.id, name: sub.name)
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+            pendingDelete = pending
+        }
+        deleteCommitTask = Task {
+            try? await Task.sleep(for: .seconds(4))
+            guard !Task.isCancelled else { return }
+            commitDelete(pending.id)
+        }
+    }
+
+    private func commitPendingDeleteNow() {
+        deleteCommitTask?.cancel()
+        if let id = pendingDelete?.id { commitDelete(id) }
+    }
+
+    private func commitDelete(_ id: UUID) {
+        if let sub = subscriptions.first(where: { $0.id == id }) {
+            modelContext.delete(sub)
+        }
+        if pendingDelete?.id == id {
+            withAnimation { pendingDelete = nil }
+        }
+        updateWidgetSnapshot(from: subscriptions, currency: currency)
+    }
+
+    private func undoDelete() {
+        deleteCommitTask?.cancel()
+        if let id = pendingDelete?.id, let sub = subscriptions.first(where: { $0.id == id }) {
+            NotificationManager.shared.schedule(for: sub)
+        }
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+            pendingDelete = nil
+        }
+    }
+
+    @ViewBuilder
+    private func undoBanner(_ pending: PendingDelete) -> some View {
+        HStack(spacing: 12) {
+            Text("Deleted \(pending.name)")
+                .font(.subheadline)
+                .lineLimit(1)
+            Spacer(minLength: 8)
+            Button("Undo") { undoDelete() }
+                .font(.subheadline.weight(.semibold))
+        }
+        .foregroundStyle(Color(.systemBackground))
+        .tint(Color(.systemBackground))
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(Color(.label), in: Capsule())
+        .shadow(color: .black.opacity(0.18), radius: 12, x: 0, y: 4)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 8)
+        .transition(.move(edge: .bottom).combined(with: .opacity))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Deleted \(pending.name). Double tap Undo to restore.")
+    }
+
+    /// Celebratory renew used for due/overdue rows: confetti + checkmark, then
+    /// the model advances exactly when the removal animation completes (no stale
+    /// window where the row shows old data).
+    private func triggerRenew(_ sub: Subscription) {
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+            _ = renewingIDs.insert(sub.id)
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.85)) {
+                _ = renewingIDs.remove(sub.id)
+            } completion: {
+                markAsRenewed(sub)
+            }
+        }
+    }
+
+    /// Quiet renew for not-yet-due rows (no celebration overlay on these).
+    private func renewNow(_ sub: Subscription) {
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+            markAsRenewed(sub)
         }
     }
 
@@ -236,6 +344,11 @@ struct ContentView: View {
         NotificationManager.shared.schedule(for: subscription)
         updateWidgetSnapshot(from: subscriptions, currency: currency)
     }
+}
+
+private struct PendingDelete: Identifiable, Equatable {
+    let id: UUID
+    let name: String
 }
 
 private struct CardPressButtonStyle: ButtonStyle {

@@ -142,14 +142,7 @@ struct SubscriptionDetailView: View {
                     .foregroundStyle(.secondary)
             }
 
-            if isRefreshingPrices {
-                HStack(spacing: 10) {
-                    ProgressView()
-                    Text("Refreshing prices\u{2026}")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-            } else if refreshCompleted {
+            if refreshCompleted {
                 Label("Prices updated", systemImage: "checkmark.circle.fill")
                     .font(.subheadline)
                     .foregroundStyle(.green)

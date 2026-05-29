@@ -92,6 +92,27 @@ struct SubscriptionRow: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityDescription)
+    }
+
+    private var accessibilityDescription: String {
+        let amount = subscription.amount.formatted(.currency(code: currency))
+        var parts = [
+            subscription.name,
+            subscription.billingCycle.localizedName,
+            subscription.category.localizedName,
+            amount,
+        ]
+        if let change = priceChange {
+            switch change {
+            case .increased: parts.append(String(localized: "Price increased"))
+            case .decreased: parts.append(String(localized: "Price decreased"))
+            case .cheaperPlanAvailable: parts.append(String(localized: "Cheaper plan available"))
+            }
+        }
+        parts.append(renewalLabel)
+        return parts.joined(separator: ", ")
     }
 
     @ViewBuilder
