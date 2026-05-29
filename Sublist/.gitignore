@@ -9,3 +9,6 @@ DerivedData/
 
 # Swift Package Manager
 .build/
+
+# Local xcodebuild output (derivedDataPath)
+build/

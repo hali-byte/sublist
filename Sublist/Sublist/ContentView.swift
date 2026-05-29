@@ -1,4 +1,5 @@
 import OSLog
+import StoreKit
 import SwiftData
 import SwiftUI
 
@@ -47,6 +48,14 @@ struct ContentView: View {
     }
 
     var body: some View {
+        if hasCompletedOnboarding {
+            mainView
+        } else {
+            OnboardingView()
+        }
+    }
+
+    private var mainView: some View {
         NavigationStack {
             Group {
                 if subscriptions.isEmpty {
@@ -120,12 +129,6 @@ struct ContentView: View {
             }
             .sheet(isPresented: $showingSettings) {
                 SettingsView()
-            }
-            .fullScreenCover(isPresented: Binding(
-                get: { !hasCompletedOnboarding },
-                set: { presented in if !presented { hasCompletedOnboarding = true } }
-            )) {
-                OnboardingView()
             }
             .alert("Set Your Country", isPresented: $showCountryPrompt) {
                 Button("Confirm") {

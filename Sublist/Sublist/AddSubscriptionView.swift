@@ -308,7 +308,8 @@ struct AddSubscriptionView: View {
     // MARK: - Helpers
 
     private func apply(_ preset: PopularSubscription) {
-        withAnimation(.easeInOut(duration: 0.15)) {
+        UISelectionFeedbackGenerator().selectionChanged()
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.55)) {
             selectedPopular = preset
         }
         name = preset.name
