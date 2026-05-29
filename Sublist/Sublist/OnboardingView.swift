@@ -103,7 +103,8 @@ struct OnboardingView: View {
             if isOn { selected.remove(preset.name) } else { selected.insert(preset.name) }
         } label: {
             VStack(spacing: 8) {
-                Text(preset.emoji).font(.system(size: 30))
+                SubscriptionIconView(name: preset.name, emoji: preset.emoji, size: 30)
+                    .frame(width: 44, height: 44)
                 Text(preset.name)
                     .font(.caption.weight(.medium))
                     .lineLimit(1)
